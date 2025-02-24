@@ -6,7 +6,7 @@
 
     <groupId>jodelle.powermining</groupId>
     <artifactId>JodellePowerMining</artifactId>
-    <version>1.1.2</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -20,7 +20,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.13-SNAPSHOT</version>
+            <version>7.0.13</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

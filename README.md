@@ -170,13 +170,18 @@ I really **enjoyed** the plugin, so I decided to **update and improve it further
 | `powermining.enchant.plow.all` | Allows enchanting all Plows | `op` |
 
 ## **📌 Change Log**
-### 🆕 **Latest Update - February 16, 2025**
+### 🆕 **Latest Update (v1.2) - February 24, 2025**
+- **💠 XP Orbs** - Made a config setting for XP drops
+- **🐞 Silk Touch** - Fixed a bug where silk touch still gave XP drops.
+- **🛠️ Config Migrator** - Fixed config migrator accidentally deleting recipes.
+
+### **📌 Previous Updates**
+#### 🆕 **February 16, 2025**
 - **💼 Jobs** - Fixed plugin not working, when [Jobs Reborn](https://www.spigotmc.org/resources/jobs-reborn.4216/) wasn't installed.
 - **🔨 Anvils** - Fixed Anvils not adding durability when the Item with lower durability was on the right site. 
 - **✨ Enchantments** - Fixed Unbreaking enchantment not working correctly.
 - **🛠️ Durability** - Fixed Items with enchantments not breaking correctly.
 
-### **📌 Previous Updates**
 #### 📅 **February 15, 2025**
 - **💼 Jobs support** - Added support for [Jobs Reborn](https://www.spigotmc.org/resources/jobs-reborn.4216/).
 

@@ -765,6 +765,84 @@ recipes:
       - "NHN"
       - "ENE"
 
+# ⚡ XP Drops Configuration
+# =========================
+#
+# 🔹 What this does:
+# - Defines the XP drop ranges for various block types when broken.
+# - Each block material has a minimum and maximum XP value.
+# - Changes require a server restart or running: `/powermining admin reload`
+#
+# 🔹 How to Define XP Drop Ranges:
+# - Use exact block material names from Spigot's Material list (case-sensitive).
+# - Full list of valid materials: 🔗 [Spigot API - Material List](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html)
+# - The range is defined using two keys: `min` and `max`.
+# - Example:
+#     COAL_ORE:
+#       min: 0
+#       max: 2
+#
+# 🔹 Important Notes:
+# - Ensure that `max` is not less than `min` to avoid configuration errors.
+# - Available default values can be found in the plugin documentation or GitHub.
+#
+# ⚡ Customize as needed!
+xp-drops:
+  COAL_ORE:
+    min: 0
+    max: 2
+  DEEPSLATE_COAL_ORE:
+    min: 0
+    max: 2
+  DIAMOND_ORE:
+    min: 3
+    max: 7
+  DEEPSLATE_DIAMOND_ORE:
+    min: 3
+    max: 7
+  EMERALD_ORE:
+    min: 3
+    max: 7
+  DEEPSLATE_EMERALD_ORE:
+    min: 3
+    max: 7
+  LAPIS_ORE:
+    min: 2
+    max: 5
+  DEEPSLATE_LAPIS_ORE:
+    min: 2
+    max: 5
+  REDSTONE_ORE:
+    min: 1
+    max: 5
+  DEEPSLATE_REDSTONE_ORE:
+    min: 1
+    max: 5
+  NETHER_QUARTZ_ORE:
+    min: 2
+    max: 5
+  NETHER_GOLD_ORE:
+    min: 0
+    max: 1
+  SCULK:
+    min: 1
+    max: 1
+  SCULK_SENSOR:
+    min: 5
+    max: 5
+  SCULK_SHRIEKER:
+    min: 5
+    max: 5
+  SCULK_CATALYST:
+    min: 5
+    max: 5
+  CALIBRATED_SCULK_SENSOR:
+    min: 5
+    max: 5
+  SPAWNER:
+    min: 15
+    max: 43
+
 # ⚙️ Configuration Version
 # ------------------------
 # This value tracks the version of the configuration file.
@@ -773,7 +851,7 @@ recipes:
 # 🚨 Do NOT change this value! 🚨
 # - Modifying it may cause the plugin to stop working.
 # - If there’s an issue, delete the config file and restart the server or reload the plugin to regenerate it.
-configVersion: "1.0"
+configVersion: "1.2"
 
 # 🛠️ Debug Mode
 # -------------
