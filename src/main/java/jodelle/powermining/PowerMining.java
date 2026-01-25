@@ -14,6 +14,7 @@ import jodelle.powermining.lib.Reference;
 import jodelle.powermining.listeners.BlockBreakListener;
 import jodelle.powermining.managers.ConfigMigrator;
 import jodelle.powermining.managers.RecipeManager;
+import jodelle.powermining.utils.GitHubUpdater;
 import jodelle.powermining.utils.LangFile;
 
 import org.bstats.bukkit.Metrics;
@@ -52,7 +53,29 @@ import java.util.Map;
  * </p>
  */
 public final class PowerMining extends JavaPlugin {
+    /**
+     * Creates a new instance of the PowerMining plugin.
+     *
+     * <p>
+     * This constructor is called by the Bukkit plugin loader during plugin
+     * initialization. No manual instantiation should be performed.
+     * </p>
+     */
+    public PowerMining() {
+        // Required default constructor for Bukkit
+    }
+
+    /**
+     * Reference to the active {@link JavaPlugin} instance of PowerMining.
+     *
+     * <p>
+     * This field provides global access to the plugin instance and can be used
+     * by other classes to access plugin-related functionality such as the data
+     * folder, scheduler, or configuration.
+     * </p>
+     */
     public JavaPlugin plugin;
+
     private PlayerInteractHandler handlerPlayerInteract;
     private BlockBreakHandler handlerBlockBreak;
     private CraftItemHandler handlerCraftItem;
@@ -60,11 +83,57 @@ public final class PowerMining extends JavaPlugin {
     private InventoryClickHandler handlerInventoryClick;
     private ClickPlayerHandler handlerClickPlayer;
     private AnvilRepairHandler handlerAnvilRepair;
+
+    /**
+     * Manages all custom PowerMining crafting recipes.
+     *
+     * <p>
+     * This manager is responsible for registering and unregistering
+     * all custom recipes during the plugin lifecycle.
+     * </p>
+     */
     private RecipeManager recipeManager;
+
+    /**
+     * Handles debug output for the plugin.
+     *
+     * <p>
+     * This instance controls whether debug messages are printed
+     * to the console based on the current debug configuration.
+     * </p>
+     */
     private DebuggingMessages debuggingMessages;
+
+    /**
+     * Active language file used for all localized plugin messages.
+     *
+     * <p>
+     * This reference may be replaced at runtime when the language
+     * is changed or reloaded.
+     * </p>
+     */
     private LangFile langFile;
+
+    /**
+     * Listener responsible for handling block break events.
+     *
+     * <p>
+     * This reference may be set externally and is used to coordinate
+     * block break logic across the plugin.
+     * </p>
+     */
     private BlockBreakListener blockBreakListener;
+
+    /**
+     * The main configuration file of the PowerMining plugin.
+     *
+     * <p>
+     * This file represents the {@code config.yml} located in the plugin's data
+     * folder. It is used to store and load all configurable plugin settings.
+     * </p>
+     */
     public File ConfigFile = new File(getDataFolder(), "config.yml");
+
     private List<String> availableLanguages = new ArrayList<>();
 
     private WorldGuardPlugin worldguard;
@@ -142,13 +211,13 @@ public final class PowerMining extends JavaPlugin {
         handlerClickPlayer = new ClickPlayerHandler();
         handlerAnvilRepair = new AnvilRepairHandler();
 
-        handlerPlayerInteract.Init(this);
-        handlerBlockBreak.Init(this);
-        handlerCraftItem.Init(this);
-        handlerEnchantItem.Init(this);
-        handlerInventoryClick.Init(this);
-        handlerClickPlayer.Init(this);
-        handlerAnvilRepair.Init(this);
+        handlerPlayerInteract.init(this);
+        handlerBlockBreak.init(this);
+        handlerCraftItem.init(this);
+        handlerEnchantItem.init(this);
+        handlerInventoryClick.init(this);
+        handlerClickPlayer.init(this);
+        handlerAnvilRepair.init(this);
 
         this.registerCommand();
 
@@ -158,6 +227,9 @@ public final class PowerMining extends JavaPlugin {
 
         Bukkit.getServer().getConsoleSender().sendMessage(
                 prefix + ChatColor.GREEN + "Plugin enabled in " + ChatColor.GOLD + duration + "ms" + ChatColor.RESET);
+
+        // Check GitHub for plugin updates (async)
+        GitHubUpdater.checkForUpdates(this);
     }
 
     /**
@@ -192,7 +264,7 @@ public final class PowerMining extends JavaPlugin {
 
         getLogger().info("PowerMining plugin was disabled.");
     }
-    
+
     /**
      * Loads the dependencies that the plugin might require to properly function.
      * 

@@ -7,24 +7,34 @@ import org.bukkit.command.ConsoleCommandSender;
 import jodelle.powermining.PowerMining;
 
 /**
- * Handles debugging messages for the PowerMining plugin.
- * 
+ * Utility class responsible for handling debug output for the PowerMining plugin.
+ *
  * <p>
- * This class is responsible for sending debug messages to the console when
- * debug mode is enabled. It checks the plugin's debug mode status and logs
- * messages accordingly.
+ * This class provides a centralized way to send debug messages to the server
+ * console. All messages are only emitted when the plugin's debug mode is enabled,
+ * ensuring that additional logging does not clutter the console during normal
+ * operation.
+ * </p>
+ *
+ * <p>
+ * Debug messages are visually distinguished by a fixed prefix and a dedicated
+ * color, making them easy to identify among other log entries.
  * </p>
  */
 public class DebuggingMessages {
 
+    /**
+     * Console sender used to output debug messages to the server console.
+     */
     protected ConsoleCommandSender console;
 
     /**
-     * Constructs an instance of {@code DebuggingMessages}.
-     * 
+     * Creates a new {@code DebuggingMessages} instance.
+     *
      * <p>
-     * Initializes the console sender and logs an initial debug message if debugging
-     * mode is enabled.
+     * The constructor initializes the {@link ConsoleCommandSender} and immediately
+     * prints a startup message if debug mode is enabled. This helps verifying at
+     * server startup that debugging is active.
      * </p>
      */
     public DebuggingMessages() {
@@ -35,8 +45,13 @@ public class DebuggingMessages {
     }
 
     /**
-     * Checks if debugging mode is enabled in the PowerMining plugin.
-     * 
+     * Indicates whether debug mode is currently enabled for the plugin.
+     *
+     * <p>
+     * This method directly reflects the global debug configuration of
+     * {@link PowerMining}.
+     * </p>
+     *
      * @return {@code true} if debug mode is enabled, {@code false} otherwise.
      */
     public boolean isDebuggingOn() {
@@ -44,14 +59,17 @@ public class DebuggingMessages {
     }
 
     /**
-     * Sends a debug message to the console if debugging mode is enabled.
-     * 
+     * Sends a formatted debug message to the server console.
+     *
      * <p>
-     * Messages are prefixed with "[JodellePowerMiningDebugging]" and displayed in
-     * light purple to distinguish them from other logs.
+     * Messages are only sent if debug mode is enabled. Each message is prefixed
+     * with {@code [JodellePowerMiningDebugging]} and colored in
+     * {@link ChatColor#LIGHT_PURPLE} to clearly separate debug output from regular
+     * server logs.
      * </p>
-     * 
-     * @param message The message to be logged.
+     *
+     * @param message
+     *         The message text to log to the console.
      */
     public void sendConsoleMessage(String message) {
         if (isDebuggingOn()) {

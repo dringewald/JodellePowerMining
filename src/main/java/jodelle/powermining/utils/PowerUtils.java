@@ -20,7 +20,6 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -353,7 +352,7 @@ public class PowerUtils {
      * @param itemType The {@link Material} type of the tool being used.
      * @return {@code true} if the player has permission, {@code false} otherwise.
      */
-    public static boolean checkUsePermission(@NonNull PowerMining plugin, @Nonnull Player player,
+    public static boolean checkUsePermission(@Nonnull PowerMining plugin, @Nonnull Player player,
             @Nonnull Material itemType) {
         if (!Reference.USE_PERMISSIONS.containsKey(itemType)) {
             throw new NoSuchElementException();

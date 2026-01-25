@@ -43,6 +43,17 @@ public class PowerMiningCommand implements CommandExecutor {
    String powerToolName;
    Player p;
 
+   /**
+    * Creates a new {@code PowerMiningCommand} instance.
+    *
+    * <p>
+    * This constructor initializes the command executor for the
+    * {@code /powermining} command and prepares access to the plugin instance
+    * and its debugging facilities.
+    * </p>
+    *
+    * @param plugin The main {@link PowerMining} plugin instance.
+    */
    public PowerMiningCommand(PowerMining plugin) {
       this.plugin = plugin;
       debuggingMessages = plugin.getDebuggingMessages();
@@ -138,7 +149,7 @@ public class PowerMiningCommand implements CommandExecutor {
                      plugin.processConfig();
 
                      // Reinitialize BlockBreakHandler and Listener
-                     plugin.getBlockBreakHandler().Init(plugin);
+                     plugin.getBlockBreakHandler().init(plugin);
                      plugin.getServer().getPluginManager().registerEvents(plugin.getBlockBreakHandler().getListener(),
                            plugin);
 

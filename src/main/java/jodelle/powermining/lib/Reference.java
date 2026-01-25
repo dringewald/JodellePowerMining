@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import javax.annotation.Nonnull;
 
 /**
  * Stores constant references and predefined data used in the PowerMining
@@ -16,6 +17,13 @@ import java.util.*;
  * </p>
  */
 public class Reference {
+
+    /**
+     * Prevents instantiation of this utility class.
+     */
+    private Reference() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     /**
      * List of plugin dependencies required for integration.
@@ -83,7 +91,7 @@ public class Reference {
     /**
      * List of pickaxe materials used in hammer crafting.
      */
-    public static ArrayList<Material> PICKAXES = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<Material> PICKAXES = new ArrayList<>(Arrays.asList(
             Material.WOODEN_PICKAXE,
             Material.STONE_PICKAXE,
             Material.IRON_PICKAXE,
@@ -94,7 +102,7 @@ public class Reference {
     /**
      * List of shovel materials used in excavator crafting.
      */
-    public static ArrayList<Material> SHOVELS = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<Material> SHOVELS = new ArrayList<>(Arrays.asList(
             Material.WOODEN_SHOVEL,
             Material.STONE_SHOVEL,
             Material.IRON_SHOVEL,
@@ -105,7 +113,7 @@ public class Reference {
     /**
      * List of spade materials (alias for shovels).
      */
-    public static ArrayList<Material> SPADES = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<Material> SPADES = new ArrayList<>(Arrays.asList(
             Material.WOODEN_SHOVEL,
             Material.STONE_SHOVEL,
             Material.IRON_SHOVEL,
@@ -116,7 +124,7 @@ public class Reference {
     /**
      * List of hoe materials used in plow crafting.
      */
-    public static ArrayList<Material> HOES = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<Material> HOES = new ArrayList<>(Arrays.asList(
             Material.WOODEN_HOE,
             Material.STONE_HOE,
             Material.IRON_HOE,
@@ -137,21 +145,21 @@ public class Reference {
     /**
      * List of hammer tool names.
      */
-    public static ArrayList<String> HAMMERS = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<String> HAMMERS = new ArrayList<>(Arrays.asList(
             "WOODEN_HAMMER", "STONE_HAMMER", "IRON_HAMMER", "GOLDEN_HAMMER", "DIAMOND_HAMMER",
             "NETHERITE_HAMMER"));
 
     /**
      * List of excavator tool names.
      */
-    public static ArrayList<String> EXCAVATORS = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<String> EXCAVATORS = new ArrayList<>(Arrays.asList(
             "WOODEN_EXCAVATOR", "STONE_EXCAVATOR", "IRON_EXCAVATOR", "GOLDEN_EXCAVATOR",
             "DIAMOND_EXCAVATOR", "NETHERITE_EXCAVATOR"));
 
     /**
      * List of plow tool names.
      */
-    public static ArrayList<String> PLOWS = new ArrayList<>(Arrays.asList(
+    public static final @Nonnull ArrayList<String> PLOWS = new ArrayList<>(Arrays.asList(
             "WOODEN_PLOW", "STONE_PLOW", "IRON_PLOW", "GOLDEN_PLOW", "DIAMOND_PLOW", "NETHERITE_PLOW"));
 
     /**
@@ -169,32 +177,135 @@ public class Reference {
     }
 
     /**
-     * Populates the crafting recipe maps for hammers, excavators, and plows
-     * by creating recipe patterns.
+     * Resolves the base crafting ingredient for a PowerTool based on its tier.
+     *
+     * <p>
+     * This method derives the primary material used in crafting recipes (e.g. the
+     * "head" material) from the tool's name prefix. The mapping follows the
+     * convention used by the plugin's default configuration:
+     * </p>
+     *
+     * <ul>
+     * <li>{@code WOODEN_*} → {@code OAK_LOG}</li>
+     * <li>{@code STONE_*} → {@code STONE}</li>
+     * <li>{@code IRON_*} → {@code IRON_INGOT}</li>
+     * <li>{@code GOLDEN_*} → {@code GOLD_INGOT}</li>
+     * <li>{@code DIAMOND_*} → {@code DIAMOND}</li>
+     * <li>{@code NETHERITE_*}→ {@code NETHERITE_INGOT}</li>
+     * </ul>
+     *
+     * <p>
+     * The returned value is the {@link org.bukkit.Material} name as a
+     * {@link String}
+     * and is intended to be passed into recipe construction utilities such as
+     * {@code createRecipe(...)}.
+     * </p>
+     *
+     * @param toolName
+     *                 The full tool identifier (e.g. {@code DIAMOND_EXCAVATOR}).
+     *                 Must not be {@code null}.
+     *
+     * @return
+     *         The material name representing the crafting ingredient for the
+     *         tool's tier.
+     *
+     * @throws IllegalArgumentException
+     *                                  If the tool name does not start with a
+     *                                  recognized tier prefix.
+     */
+    private static @Nonnull String getTierIngredient(final @Nonnull String toolName) {
+        // English comments as requested
+        if (toolName.startsWith("WOODEN_")) {
+            return "OAK_LOG";
+        }
+        if (toolName.startsWith("STONE_")) {
+            return "STONE";
+        }
+        if (toolName.startsWith("IRON_")) {
+            return "IRON_INGOT";
+        }
+        if (toolName.startsWith("GOLDEN_")) {
+            return "GOLD_INGOT";
+        }
+        if (toolName.startsWith("DIAMOND_")) {
+            return "DIAMOND";
+        }
+        if (toolName.startsWith("NETHERITE_")) {
+            return "NETHERITE_INGOT";
+        }
+        // English comments as requested
+        throw new IllegalArgumentException("Unknown tool tier for: " + toolName);
+    }
+
+    /**
+     * Initializes the default crafting recipes for all PowerTool categories.
+     *
+     * <p>
+     * This method populates the internal recipe maps for:
+     * </p>
+     * <ul>
+     * <li>Hammers</li>
+     * <li>Excavators</li>
+     * <li>Plows</li>
+     * </ul>
+     *
+     * <p>
+     * For each tool type, a fixed 3x3 recipe layout is generated using:
+     * </p>
+     * <ul>
+     * <li>The tier-based ingredient resolved via
+     * {@link #getTierIngredient(String)}</li>
+     * <li>The corresponding vanilla tool (pickaxe, shovel, or hoe) placed
+     * in the center slot</li>
+     * <li>{@code EMPTY} slots represented explicitly to preserve shape</li>
+     * </ul>
+     *
+     * <p>
+     * The resulting {@link ItemStack} arrays are stored in their respective
+     * crafting maps ({@code HAMMER_CRAFTING_RECIPES},
+     * {@code EXCAVATOR_CRAFTING_RECIPES}, {@code PLOW_CRAFTING_RECIPES}) and are
+     * later used both for recipe registration and for crafting validation.
+     * </p>
+     *
+     * <p>
+     * This method is intended to be invoked once during static initialization.
+     * </p>
      */
     private static void addRecipesFromConfig() {
         // Hammer recipes
-        HAMMERS.forEach(hammer -> {
-            String pickaxeType = hammer.replace("_HAMMER", "_PICKAXE");
-            HAMMER_CRAFTING_RECIPES.put(hammer, createRecipe("EMPTY", hammer, "EMPTY",
-                    hammer, pickaxeType, hammer,
-                    "EMPTY", hammer, "EMPTY"));
+        HAMMERS.forEach(hammerName -> {
+            final @Nonnull String hammer = Objects.requireNonNull(hammerName, "hammer");
+            final String headMaterial = getTierIngredient(hammer);
+            final String pickaxeType = hammer.replace("_HAMMER", "_PICKAXE");
+
+            HAMMER_CRAFTING_RECIPES.put(hammer, createRecipe(
+                    "EMPTY", headMaterial, "EMPTY",
+                    headMaterial, pickaxeType, headMaterial,
+                    "EMPTY", headMaterial, "EMPTY"));
         });
 
         // Excavator recipes
-        EXCAVATORS.forEach(excavator -> {
-            String shovelType = excavator.replace("_EXCAVATOR", "_SHOVEL");
-            EXCAVATOR_CRAFTING_RECIPES.put(excavator, createRecipe("EMPTY", excavator, "EMPTY",
-                    excavator, shovelType, excavator,
-                    "EMPTY", excavator, "EMPTY"));
+        EXCAVATORS.forEach(excavatorName -> {
+            final @Nonnull String excavator = Objects.requireNonNull(excavatorName, "excavator");
+            final String headMaterial = getTierIngredient(excavator);
+            final String shovelType = excavator.replace("_EXCAVATOR", "_SHOVEL");
+
+            EXCAVATOR_CRAFTING_RECIPES.put(excavator, createRecipe(
+                    "EMPTY", headMaterial, "EMPTY",
+                    headMaterial, shovelType, headMaterial,
+                    "EMPTY", headMaterial, "EMPTY"));
         });
 
         // Plow recipes
-        PLOWS.forEach(plow -> {
-            String hoeType = plow.replace("_PLOW", "_HOE");
-            PLOW_CRAFTING_RECIPES.put(plow, createRecipe("EMPTY", plow, "EMPTY",
-                    plow, hoeType, plow,
-                    "EMPTY", plow, "EMPTY"));
+        PLOWS.forEach(plowName -> {
+            final @Nonnull String plow = Objects.requireNonNull(plowName, "plow");
+            final String headMaterial = getTierIngredient(plow);
+            final String hoeType = plow.replace("_PLOW", "_HOE");
+
+            PLOW_CRAFTING_RECIPES.put(plow, createRecipe(
+                    "EMPTY", headMaterial, "EMPTY",
+                    headMaterial, hoeType, headMaterial,
+                    "EMPTY", headMaterial, "EMPTY"));
         });
     }
 

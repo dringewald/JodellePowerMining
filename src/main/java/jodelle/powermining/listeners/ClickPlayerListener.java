@@ -18,6 +18,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -34,9 +36,9 @@ import javax.annotation.Nullable;
  * </p>
  */
 public class ClickPlayerListener implements Listener {
-    private final PowerMining plugin;
+    private final @Nonnull PowerMining plugin;
     private final boolean useDurabilityPerBlock;
-    private final DebuggingMessages debuggingMessages;
+    private final @Nonnull DebuggingMessages debuggingMessages;
 
     /**
      * Constructs a {@code ClickPlayerListener} and registers it as an event
@@ -46,11 +48,11 @@ public class ClickPlayerListener implements Listener {
      *               registration.
      */
     public ClickPlayerListener(@Nonnull final PowerMining plugin) {
-        this.plugin = plugin;
-        debuggingMessages = plugin.getDebuggingMessages();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.plugin = Objects.requireNonNull(plugin, "plugin");
+        this.debuggingMessages = Objects.requireNonNull(this.plugin.getDebuggingMessages(), "debuggingMessages");
+        this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
 
-        useDurabilityPerBlock = plugin.getConfig().getBoolean("useDurabilityPerBlock");
+        this.useDurabilityPerBlock = this.plugin.getConfig().getBoolean("useDurabilityPerBlock");
     }
 
     /**
@@ -67,21 +69,25 @@ public class ClickPlayerListener implements Listener {
      *              interacts with a block.
      */
     @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerUse(PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
-        final ItemStack handItem = player.getInventory().getItemInMainHand();
-        final Material handItemType = handItem.getType();
-        final Block block = event.getClickedBlock();
-        final Action action = event.getAction();
+    public void onPlayerUse(final PlayerInteractEvent event) {
+        final @Nonnull Player player = Objects.requireNonNull(event.getPlayer(), "player");
+        final @Nonnull ItemStack handItem = Objects.requireNonNull(player.getInventory().getItemInMainHand(),
+                "handItem");
+        final @Nonnull Material handItemType = Objects.requireNonNull(handItem.getType(), "handItemType");
+        final @Nullable Block block = event.getClickedBlock();
+        final @Nonnull Action action = Objects.requireNonNull(event.getAction(), "action");
 
         if (basicVerifications(action, player, handItem, handItemType, block)) {
             return;
         }
 
-        final String playerName = player.getName();
+        final @Nonnull String playerName = Objects.requireNonNull(player.getName(), "playerName");
 
-        final PlayerInteractListener pil = plugin.getPlayerInteractHandler().getListener();
-        final BlockFace blockFace = pil.getBlockFaceByPlayerName(playerName);
+        final @Nonnull PlayerInteractListener pil = Objects.requireNonNull(
+                plugin.getPlayerInteractHandler().getListener(),
+                "playerInteractListener");
+        final @Nonnull BlockFace blockFace = Objects.requireNonNull(pil.getBlockFaceByPlayerName(playerName),
+                "blockFace");
 
         /*
          * At this point intellij shows a warning about the possibility of the argument
@@ -91,29 +97,36 @@ public class ClickPlayerListener implements Listener {
          * this method
          * never reached this point of the code.
          */
-        for (Block e : PowerUtils.getSurroundingBlocksFarm(blockFace, block, Reference.RADIUS)) {
-            final Material blockMat = e.getType();
+        int changedBlocks = 0;
+        for (final Block e : PowerUtils.getSurroundingBlocksFarm(blockFace, block, Reference.RADIUS)) {
+            final @Nonnull Material blockMat = Objects.requireNonNull(e.getType(), "blockMat");
 
             // Check if player has permission to break the block
             if (!PowerUtils.canBreak(plugin, player, e)) {
                 continue;
             }
 
-            if (PowerUtils.validatePlow(handItem.getType(), blockMat)) {
+            if (PowerUtils.validatePlow(handItemType, blockMat)) {
                 debuggingMessages.sendConsoleMessage(ChatColor.RED + "Tilling: " + e.getType());
                 usePowerTool(player, handItem, e, Material.FARMLAND);
+                changedBlocks++;
+
                 continue;
             }
 
-            if (PowerUtils.validatePath(handItem.getType(), blockMat)) {
+            if (PowerUtils.validatePath(handItemType, blockMat)) {
                 usePowerTool(player, handItem, e, Material.DIRT_PATH);
+                changedBlocks++;
             }
         }
-
-        if (!useDurabilityPerBlock && player.getGameMode().equals(GameMode.SURVIVAL)) {
+        debuggingMessages.sendConsoleMessage(
+                ChatColor.YELLOW + "changedBlocks=" + changedBlocks
+                        + " useDurabilityPerBlock=" + useDurabilityPerBlock);
+                        
+        // Apply durability only if we actually changed at least one block
+        if (!useDurabilityPerBlock && changedBlocks > 0 && player.getGameMode() == GameMode.SURVIVAL) {
             PowerUtils.reduceDurability(player, handItem);
         }
-
     }
 
     /**
@@ -126,9 +139,16 @@ public class ClickPlayerListener implements Listener {
      */
     private void usePowerTool(@Nonnull final Player player, @Nonnull final ItemStack handItem,
             @Nonnull final Block block, @Nonnull final Material material) {
+
+        // Only apply the change if the block would actually change
+        if (block.getType() == material) {
+            return;
+        }
+
         block.setType(material);
-        // Reduce durability for each block
-        if (useDurabilityPerBlock && player.getGameMode().equals(GameMode.SURVIVAL)) {
+
+        // Reduce durability for each block that was actually changed
+        if (useDurabilityPerBlock && player.getGameMode() == GameMode.SURVIVAL) {
             PowerUtils.reduceDurability(player, handItem);
         }
     }
@@ -169,7 +189,8 @@ public class ClickPlayerListener implements Listener {
         if (block == null) {
             return true;
         }
-        if (!PowerUtils.isTillable(block.getType())) {
+        final @Nonnull Material blockType = Objects.requireNonNull(block.getType(), "blockType");
+        if (!PowerUtils.isTillable(blockType)) {
             return true;
         }
         if (!PowerUtils.isPowerTool(handItem)) {

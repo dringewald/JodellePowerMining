@@ -12,49 +12,73 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Handles tab completion for the `/powermining` command.
- * 
+ * Handles tab completion for the {@code /powermining} command.
+ *
  * <p>
- * Provides suggestions for various subcommands and arguments to enhance user
- * experience. It supports:
+ * This class provides context-aware tab completion suggestions for players
+ * and the console to improve usability and reduce typing effort.
+ * </p>
+ *
+ * <p>
+ * Supported completions include:
  * </p>
  * <ul>
- * <li>Main command suggestions (e.g., `give`, `admin`, `version`, `help`,
- * `info`).</li>
- * <li>Admin subcommands (e.g., `reload`, `language`, `debug`, `help`).</li>
- * <li>PowerTools suggestions for the `give` command (Excavators, Hammers,
- * Plows).</li>
- * <li>Available language options for `/powermining admin language`.</li>
+ * <li>Main command keywords (e.g. {@code give}, {@code admin}, {@code version},
+ * {@code help}, {@code info})</li>
+ * <li>Administrative subcommands (e.g. {@code reload}, {@code language},
+ * {@code debug}, {@code help})</li>
+ * <li>Available PowerTools for the {@code give} command (Excavators,
+ * Hammers, Plows)</li>
+ * <li>Available language options for {@code /powermining admin language}</li>
  * </ul>
  */
 public class PowerMiningTabCompleter implements TabCompleter {
+    /**
+     * Cached list of available language identifiers.
+     *
+     * <p>
+     * This list is populated once during construction to avoid repeated
+     * lookups during tab completion.
+     * </p>
+     */
     private final List<String> availableLanguages;
 
+    /**
+     * Creates a new {@code PowerMiningTabCompleter}.
+     *
+     * <p>
+     * The constructor retrieves and caches the available languages from the
+     * plugin instance to be used for tab completion.
+     * </p>
+     *
+     * @param plugin The main {@link PowerMining} plugin instance.
+     */
     public PowerMiningTabCompleter(PowerMining plugin) {
         availableLanguages = plugin.getAvailableLanguagesFromCache();
     }
 
     /**
-     * Provides tab-completion suggestions for the `/powermining` command.
-     * 
+     * Provides tab-completion suggestions for the {@code /powermining} command.
+     *
      * <p>
-     * Depending on the command arguments, it suggests:
+     * Suggestions depend on the current argument depth:
      * </p>
      * <ul>
-     * <li>Level 1: Main command keywords (`give`, `admin`, `version`, `help`,
-     * `info`).</li>
-     * <li>Level 2: Subcommands (`reload`, `language`, `debug`, `help` for
-     * `admin`).</li>
-     * <li>Level 2: PowerTools list when using `/powermining give`.</li>
-     * <li>Level 3: Available language options when using `/powermining admin
-     * language`.</li>
+     * <li>Argument 1: Main command keywords</li>
+     * <li>Argument 2: Subcommands or PowerTool names</li>
+     * <li>Argument 3: Language identifiers for the admin language command</li>
      * </ul>
-     * 
+     *
+     * <p>
+     * All suggestions are filtered based on the current user input
+     * (case-insensitive prefix matching).
+     * </p>
+     *
      * @param sender The sender of the command (player or console).
      * @param cmd    The command being executed.
-     * @param alias  The alias of the command.
-     * @param args   The arguments typed so far.
-     * @return A list of possible completions based on the current input.
+     * @param alias  The alias used to execute the command.
+     * @param args   The arguments entered so far.
+     * @return A list of possible tab-completion suggestions.
      */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {

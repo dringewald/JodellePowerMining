@@ -12,35 +12,74 @@ import org.bukkit.persistence.PersistentDataType;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
+/**
+ * Base helper for creating and registering PowerTool crafting recipes and for
+ * applying standardized item metadata.
+ *
+ * <p>
+ * This class centralizes common crafting-related functionality used by the plugin:
+ * </p>
+ * <ul>
+ *   <li>Applying localized display names and lore to PowerTool {@link ItemStack}s.</li>
+ *   <li>Persistently tagging items as PowerTools via {@link org.bukkit.persistence.PersistentDataContainer}.</li>
+ *   <li>Creating {@link ShapedRecipe}s from a 3x3 {@link ItemStack} ingredient grid.</li>
+ *   <li>Registering recipes safely while preventing duplicates.</li>
+ * </ul>
+ *
+ * <p>
+ * Implementations can extend this class to build specific PowerTool recipe sets.
+ * </p>
+ */
 public class CraftItem {
 
+    /**
+     * Debug logger used for console output related to crafting and recipe registration.
+     */
     private final DebuggingMessages debuggingMessages;
+
+    /**
+     * Plugin instance used for namespacing keys, accessing language files, and registering recipes.
+     */
     protected final PowerMining plugin; // Use PowerMining instead of JavaPlugin for language access
 
+    /**
+     * Creates a new crafting helper.
+     *
+     * @param plugin
+     *         The plugin instance providing access to configuration, language strings,
+     *         and the server recipe registry. Must not be {@code null}.
+     */
     public CraftItem(@Nonnull final PowerMining plugin) {
         this.plugin = plugin;
         debuggingMessages = plugin.getDebuggingMessages();
     }
 
     /**
-     * Modifies the metadata of a given PowerTool item by setting its display name
-     * and lore
-     * based on values retrieved from the language file. If the corresponding key is
-     * missing
-     * in the language file, default values are used.
-     * 
+     * Applies localized metadata (display name and lore) to a PowerTool item and marks it
+     * persistently for later identification.
+     *
      * <p>
-     * Additionally, this method stores a persistent data value in the item's
-     * metadata
-     * to mark it as a PowerTool for identification purposes.
+     * The display name and lore are loaded from the language file using:
+     * {@code items.<toolKey>.name} and {@code items.<toolKey>.lore}. If a key is missing,
+     * fallback defaults are used. Color codes using {@code &} are translated via
+     * {@link ChatColor#translateAlternateColorCodes(char, String)}.
      * </p>
-     * 
-     * @param powerTool The {@link ItemStack} to be modified.
-     * @param toolKey   The key representing the tool in the language file, used to
-     *                  retrieve
-     *                  localized name and lore.
-     * 
-     * @throws AssertionError If the item's metadata is null.
+     *
+     * <p>
+     * Additionally, this method stores the {@code toolKey} in the item's persistent data
+     * container under the namespaced key {@code isPowerTool}. This allows other parts
+     * of the plugin to recognize the item as a PowerTool without relying on display
+     * names or lore.
+     * </p>
+     *
+     * @param powerTool
+     *         The {@link ItemStack} to modify. Must not be {@code null}.
+     * @param toolKey
+     *         The language/identifier key for this tool (e.g. {@code WOODEN_HAMMER}).
+     *         Must not be {@code null}.
+     *
+     * @throws AssertionError
+     *         If {@link ItemStack#getItemMeta()} returns {@code null}.
      */
     public void modifyItemMeta(@Nonnull final ItemStack powerTool, @Nonnull final String toolKey) {
         final ItemMeta powerToolMeta = powerTool.getItemMeta();
@@ -76,30 +115,36 @@ public class CraftItem {
     }
 
     /**
-     * Creates a shaped crafting recipe for the specified PowerTool.
-     * 
+     * Builds a 3x3 shaped crafting recipe for the given PowerTool item.
+     *
      * <p>
-     * This method generates a new {@link ShapedRecipe} using a predefined 3x3
-     * crafting
-     * grid pattern ("abc", "def", "ghi"). It then assigns ingredients to each slot
-     * based
-     * on the provided recipe array, using characters 'a' through 'i' as
-     * placeholders
-     * for the crafting grid.
+     * The recipe shape is fixed to:
      * </p>
-     * 
+     * <pre>
+     * abc
+     * def
+     * ghi
+     * </pre>
+     *
      * <p>
-     * Any null or air-material slots in the provided recipe array are ignored.
+     * Ingredients are mapped from the provided 9-slot {@code recipe} array to the
+     * corresponding placeholders {@code a} through {@code i}. Any {@code null} entries
+     * or entries whose material is {@link org.bukkit.Material#AIR} are treated as empty
+     * slots and are not assigned.
      * </p>
-     * 
-     * @param powerTool The resulting {@link ItemStack} that will be crafted using
-     *                  this recipe.
-     * @param name      The unique name of the recipe, used for namespacing.
-     * @param recipe    An array of {@link ItemStack} representing the 3x3 crafting
-     *                  grid,
-     *                  where null or air values indicate empty slots.
-     * 
-     * @return A {@link ShapedRecipe} object representing the crafted item.
+     *
+     * @param powerTool
+     *         The resulting {@link ItemStack} crafted by this recipe. Must not be {@code null}.
+     * @param name
+     *         The unique recipe name used to create the {@link NamespacedKey}. Must not be {@code null}.
+     * @param recipe
+     *         A 9-element array representing the crafting grid from top-left to bottom-right.
+     *         Must not be {@code null}. Null or AIR entries indicate empty slots.
+     *
+     * @return The created {@link ShapedRecipe} instance.
+     *
+     * @throws ArrayIndexOutOfBoundsException
+     *         If {@code recipe} contains fewer than 9 elements.
      */
     protected ShapedRecipe createRecipe(@Nonnull final ItemStack powerTool, @Nonnull final String name,
             @Nonnull final ItemStack[] recipe) {
@@ -116,17 +161,18 @@ public class CraftItem {
     }
 
     /**
-     * Registers a shaped crafting recipe with the server, ensuring that duplicate recipes 
-     * are not added.
-     * 
+     * Registers the given shaped recipe with the server if it is not already present.
+     *
      * <p>
-     * This method checks if a recipe with the same {@link NamespacedKey} already exists 
-     * before registering it. If the recipe does not exist, it is added to the server's 
-     * recipe registry, and a debug message is logged to the console. If the recipe is 
-     * already present, a warning message is logged instead.
+     * Registration is guarded by checking {@link org.bukkit.Server#getRecipe(NamespacedKey)}
+     * for the recipe's key. If no existing recipe is found, the recipe is added via
+     * {@link org.bukkit.Server#addRecipe(org.bukkit.inventory.Recipe)} and a debug message
+     * is logged. If a recipe with the same key already exists, registration is skipped
+     * and a warning is logged instead.
      * </p>
-     * 
-     * @param recipe The {@link ShapedRecipe} to be registered.
+     *
+     * @param recipe
+     *         The {@link ShapedRecipe} to register. Must not be {@code null}.
      */
     protected void registerRecipes(@Nonnull final ShapedRecipe recipe) {
         NamespacedKey key = recipe.getKey();

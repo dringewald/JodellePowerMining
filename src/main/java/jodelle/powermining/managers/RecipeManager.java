@@ -17,6 +17,9 @@ import org.bukkit.inventory.*;
 
 import java.util.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Manages the registration and unregistration of custom crafting recipes for
  * the PowerMining plugin.
@@ -28,7 +31,7 @@ import java.util.*;
  * </p>
  */
 public class RecipeManager {
-    private final PowerMining plugin;
+    private final @Nonnull PowerMining plugin;
     private final List<NamespacedKey> registeredRecipes = new ArrayList<>();
     private final DebuggingMessages debuggingMessages;
 
@@ -40,7 +43,7 @@ public class RecipeManager {
      */
     public RecipeManager(PowerMining plugin) {
         debuggingMessages = plugin.getDebuggingMessages();
-        this.plugin = plugin;
+        this.plugin = java.util.Objects.requireNonNull(plugin, "plugin");
     }
 
     /**
@@ -69,8 +72,26 @@ public class RecipeManager {
 
     /**
      * Loads crafting recipes from the configuration file and registers them.
-     * 
-     * @param config The {@link FileConfiguration} containing recipe data.
+     *
+     * <p>
+     * This method reads recipe definitions from the {@code recipes} section of the
+     * given
+     * configuration, validates the recipe shape, and registers each valid
+     * {@link ShapedRecipe}
+     * via {@link Bukkit#addRecipe(Recipe)}. Duplicate recipe keys are skipped.
+     * </p>
+     *
+     * <p>
+     * If the {@code recipes} section is missing, nothing is registered and a
+     * warning is logged.
+     * Invalid shapes (not exactly 3 rows or rows not exactly 3 characters long) are
+     * skipped.
+     * If a recipe result item cannot be resolved (unknown tool name), the recipe is
+     * skipped.
+     * </p>
+     *
+     * @param config The {@link FileConfiguration} containing recipe data. Must not
+     *               be {@code null}.
      */
     private void loadRecipesFromConfig(FileConfiguration config) {
         plugin.getLogger().info("Loading recipes from config.yml...");
@@ -82,26 +103,31 @@ public class RecipeManager {
         }
 
         for (String key : recipesSection.getKeys(false)) {
-            NamespacedKey recipeKey = new NamespacedKey(plugin, key);
+            final @Nonnull String toolName = Objects.requireNonNull(key, "recipe key");
+
+            final NamespacedKey recipeKey = new NamespacedKey(plugin, toolName);
             if (registeredRecipes.contains(recipeKey)) {
-                debuggingMessages.sendConsoleMessage("Skipping duplicate recipe: " + key);
+                debuggingMessages.sendConsoleMessage("Skipping duplicate recipe: " + toolName);
                 continue;
             }
 
-            Map<Character, ItemStack> ingredientsMap = parseIngredients(config, key);
-            List<String> shape = config.getStringList("recipes." + key + ".recipe-shape");
+            final @Nonnull Map<Character, ItemStack> ingredientsMap = Objects
+                    .requireNonNull(parseIngredients(config, toolName), "ingredientsMap");
+
+            final @Nonnull List<String> shape = Objects
+                    .requireNonNull(config.getStringList("recipes." + toolName + ".recipe-shape"), "shape");
             shape.replaceAll(String::trim);
 
             if (shape.size() != 3 || shape.stream().anyMatch(row -> row.length() != 3)) {
-                plugin.getLogger().warning("Skipping recipe for " + key + " - Invalid shape size.");
+                plugin.getLogger().warning("Skipping recipe for " + toolName + " - Invalid shape size.");
                 continue;
             }
 
-            ShapedRecipe recipe = createShapedRecipe(recipeKey, key, ingredientsMap, shape);
+            final @Nullable ShapedRecipe recipe = createShapedRecipe(recipeKey, toolName, ingredientsMap, shape);
             if (recipe != null) {
                 Bukkit.addRecipe(recipe);
                 registeredRecipes.add(recipeKey);
-                debuggingMessages.sendConsoleMessage("Successfully registered recipe: " + key);
+                debuggingMessages.sendConsoleMessage("Successfully registered recipe: " + toolName);
             }
         }
     }
@@ -114,7 +140,8 @@ public class RecipeManager {
      * @return A map of character keys to corresponding {@link ItemStack}
      *         ingredients.
      */
-    private Map<Character, ItemStack> parseIngredients(FileConfiguration config, String key) {
+    private @Nonnull Map<Character, ItemStack> parseIngredients(final @Nonnull FileConfiguration config,
+            final @Nonnull String key) {
         Map<Character, ItemStack> ingredientsMap = new HashMap<>();
         ConfigurationSection ingredientsSection = config
                 .getConfigurationSection("recipes." + key + ".recipe-ingredients");
@@ -146,18 +173,27 @@ public class RecipeManager {
 
     /**
      * Creates a {@link ShapedRecipe} from the parsed ingredients and shape.
-     * 
-     * @param key            The {@link NamespacedKey} for the recipe.
-     * @param toolName       The name of the tool being crafted.
+     *
+     * <p>
+     * If the tool name cannot be resolved to a valid result item,
+     * the recipe is skipped and {@code null} is returned.
+     * </p>
+     *
+     * @param key            The {@link NamespacedKey} identifying the recipe.
+     * @param toolName       The name of the tool being crafted. Must not be
+     *                       {@code null}.
      * @param ingredientsMap The map of ingredient characters to their corresponding
-     *                       {@link ItemStack}.
-     * @param shape          The crafting shape defined in the config.
-     * @return The created {@link ShapedRecipe}, or {@code null} if invalid.
+     *                       {@link ItemStack} values.
+     * @param shape          The crafting shape defined in the configuration.
+     * @return The created {@link ShapedRecipe}, or {@code null} if the recipe
+     *         is invalid or the tool name is unknown.
      */
-    private ShapedRecipe createShapedRecipe(NamespacedKey key, String toolName,
-            Map<Character, ItemStack> ingredientsMap, List<String> shape) {
+    private @Nullable ShapedRecipe createShapedRecipe(final @Nonnull NamespacedKey key,
+            final @Nonnull String toolName,
+            final @Nonnull Map<Character, ItemStack> ingredientsMap,
+            final @Nonnull List<String> shape) {
 
-        ItemStack result = getToolItem(toolName);
+        final @Nullable ItemStack result = getToolItem(toolName);
         if (result == null) {
             plugin.getLogger().warning("Skipping recipe: Unknown tool " + toolName);
             return null;
@@ -194,63 +230,87 @@ public class RecipeManager {
     }
 
     /**
-     * Registers fallback recipes for PowerTools when no custom recipes are found in
-     * the configuration.
-     * 
+     * Registers fallback crafting recipes for PowerTools when no custom recipes
+     * are found in the configuration.
+     *
      * <p>
-     * This method iterates through a list of tools and their corresponding crafting
-     * recipes,
-     * ensuring that they are properly registered in the game. If a recipe is
-     * already registered
-     * or invalid, it is skipped. Each tool is assigned a 3x3 shaped recipe,
-     * ensuring consistency
-     * with the crafting system.
+     * This method iterates over the provided list of tool names and registers their
+     * corresponding fallback crafting recipes defined in the given recipe map.
+     * Recipes are skipped if they are already registered, invalid, or if the tool
+     * name cannot be resolved to a valid result item.
      * </p>
-     * 
-     * @param tools           A {@link List} of tool names to be registered.
-     * @param craftingRecipes A {@link HashMap} mapping tool names to their
-     *                        corresponding {@link ItemStack[]} recipes.
+     *
+     * <p>
+     * Tool names that are {@code null}, unknown, or mapped to invalid recipe data
+     * are skipped.
+     * </p>
+     *
+     * <p>
+     * Each fallback recipe uses a fixed 3x3 shaped layout. Only non-null and
+     * non-AIR ingredients are applied to the recipe.
+     * </p>
+     *
+     * @param tools
+     *                        A list of tool names to register fallback recipes for.
+     *                        Entries may not be {@code null}; null entries are
+     *                        skipped.
+     * @param craftingRecipes
+     *                        A map linking tool names to their corresponding 3x3
+     *                        crafting recipes.
+     *                        Each recipe must contain exactly 9 {@link ItemStack}
+     *                        entries.
      */
+    private void registerFallbackRecipes(
+            final List<String> tools,
+            final HashMap<String, ItemStack[]> craftingRecipes) {
 
-    private void registerFallbackRecipes(List<String> tools, HashMap<String, ItemStack[]> craftingRecipes) {
         for (String toolName : tools) {
-            NamespacedKey key = new NamespacedKey(plugin, toolName);
+            final @Nonnull String safeToolName = java.util.Objects.requireNonNull(toolName, "toolName");
 
-            // Check if recipe is already registered before adding
+            final NamespacedKey key = new NamespacedKey(plugin, safeToolName);
+
+            // Skip already registered recipes
             if (registeredRecipes.contains(key) || Bukkit.getRecipe(key) != null) {
-                debuggingMessages.sendConsoleMessage("Skipping duplicate fallback recipe: " + toolName);
+                debuggingMessages.sendConsoleMessage("Skipping duplicate fallback recipe: " + safeToolName);
                 continue;
             }
 
-            ItemStack resultItem = getToolItem(toolName);
-
+            // Resolve result item
+            final @Nullable ItemStack resultItem = getToolItem(safeToolName);
             if (resultItem == null) {
-                debuggingMessages.sendConsoleMessage("Skipping recipe registration: Tool " + toolName + " is null!");
+                debuggingMessages.sendConsoleMessage(
+                        "Skipping recipe registration: Tool " + safeToolName + " is unknown.");
                 continue;
             }
 
-            if (craftingRecipes.containsKey(toolName)) {
-                ItemStack[] recipeItems = craftingRecipes.get(toolName);
-
-                if (recipeItems == null || recipeItems.length != 9) {
-                    plugin.getLogger().warning("Invalid recipe data for " + toolName);
-                    continue;
-                }
-
-                ShapedRecipe recipe = new ShapedRecipe(key, resultItem);
-                recipe.shape("ABC", "DEF", "GHI");
-                char[] slots = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
-
-                for (int i = 0; i < slots.length; i++) {
-                    if (recipeItems[i] != null && recipeItems[i].getType() != Material.AIR) {
-                        recipe.setIngredient(slots[i], recipeItems[i].getType());
-                    }
-                }
-
-                Bukkit.addRecipe(recipe);
-                registeredRecipes.add(key);
-                debuggingMessages.sendConsoleMessage("Registered fallback recipe: " + toolName);
+            // Load recipe definition
+            if (!craftingRecipes.containsKey(safeToolName)) {
+                plugin.getLogger().warning("No fallback recipe defined for " + safeToolName);
+                continue;
             }
+
+            final ItemStack[] recipeItems = craftingRecipes.get(safeToolName);
+            if (recipeItems == null || recipeItems.length != 9) {
+                plugin.getLogger().warning("Invalid recipe data for " + safeToolName);
+                continue;
+            }
+
+            // Create shaped recipe
+            final ShapedRecipe recipe = new ShapedRecipe(key, resultItem);
+            recipe.shape("ABC", "DEF", "GHI");
+
+            final char[] slots = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
+
+            for (int i = 0; i < slots.length; i++) {
+                final ItemStack ingredient = recipeItems[i];
+                if (ingredient != null && ingredient.getType() != Material.AIR) {
+                    recipe.setIngredient(slots[i], ingredient.getType());
+                }
+            }
+
+            Bukkit.addRecipe(recipe);
+            registeredRecipes.add(key);
+            debuggingMessages.sendConsoleMessage("Registered fallback recipe: " + safeToolName);
         }
     }
 
@@ -286,52 +346,58 @@ public class RecipeManager {
 
     /**
      * Retrieves the corresponding {@link ItemStack} for a given tool name.
-     * 
-     * @param toolName The name of the tool being crafted.
-     * @return The crafted {@link ItemStack}, or a default placeholder if not found.
+     *
+     * <p>
+     * The method first checks custom crafting recipes defined in
+     * {@link Reference#CRAFTING_RECIPES}. If no matching entry is found,
+     * it attempts to resolve the tool name as a Bukkit {@link Material}.
+     * </p>
+     *
+     * @param toolName The name of the tool being crafted. Must not be {@code null}.
+     * @return The crafted {@link ItemStack}, or {@code null} if the tool name
+     *         cannot be resolved to a valid item.
      */
-    private ItemStack getToolItem(String toolName) {
-        // 🔹 First, check if the tool exists in Reference.CRAFTING_RECIPES
-        if (Reference.CRAFTING_RECIPES.containsKey(toolName)) {
-            ItemStack[] recipe = Reference.CRAFTING_RECIPES.get(toolName);
-            if (recipe != null && recipe.length > 0 && recipe[4] != null) { // Ensure a valid center item exists
-                ItemStack craftedItem = recipe[4];
+    private @Nullable ItemStack getToolItem(final @Nonnull String toolName) {
+        java.util.Objects.requireNonNull(toolName, "toolName");
 
-                // Apply metadata using the appropriate CraftItem subclass
-                return applyCraftItemMeta(toolName, craftedItem);
-            }
-        }
-
-        // 🔹 Second, check if the tool is a valid Bukkit Material
-        Material material = Material.getMaterial(toolName);
-        if (material != null) {
-            ItemStack craftedItem = new ItemStack(material);
-
-            // Apply metadata using the appropriate CraftItem subclass
+        final ItemStack[] recipe = Reference.CRAFTING_RECIPES.get(toolName);
+        if (recipe != null && recipe.length > 4 && recipe[4] != null) {
+            final ItemStack craftedItem = recipe[4].clone();
             return applyCraftItemMeta(toolName, craftedItem);
         }
 
-        // 🔹 If nothing is found, log a warning and return a placeholder
-        plugin.getLogger().warning("Warning: Could not find tool item for " + toolName + ". Using default.");
-        return new ItemStack(Material.WOODEN_PICKAXE); // Prevents crashes by providing a default
+        final Material material = Material.getMaterial(toolName);
+        if (material != null) {
+            final ItemStack craftedItem = new ItemStack(material);
+            return applyCraftItemMeta(toolName, craftedItem);
+        }
+
+        return null;
     }
 
     /**
      * Applies metadata to a crafted tool item.
-     * 
-     * @param toolName The name of the tool.
-     * @param toolItem The {@link ItemStack} to modify.
-     * @return The modified {@link ItemStack}.
+     *
+     * @param toolName The tool name to apply. Must not be {@code null}.
+     * @param toolItem The {@link ItemStack} to modify. May be {@code null}.
+     * @return The modified {@link ItemStack}. If {@code toolItem} is {@code null}
+     *         or {@link Material#AIR},
+     *         the original value is returned unchanged.
      */
-    private ItemStack applyCraftItemMeta(String toolName, ItemStack toolItem) {
+    private @Nonnull ItemStack applyCraftItemMeta(final @Nonnull String toolName,
+            final @Nullable ItemStack toolItem) {
         if (toolItem == null || toolItem.getType() == Material.AIR) {
-            return toolItem;
+            // If toolItem is null, return null is allowed because parameter is @Nullable.
+            // If toolItem is AIR, we just return it unchanged.
+            return toolItem == null ? new ItemStack(Material.AIR) : toolItem;
         }
 
-        // Use the base CraftItem class to apply metadata
-        CraftItem craftItem = new CraftItem(plugin);
+        // plugin should be declared as @Nonnull in the class field to avoid nullness
+        // warnings here
+        final CraftItem craftItem = new CraftItem(plugin);
         craftItem.modifyItemMeta(toolItem, toolName);
 
         return toolItem;
     }
+
 }
