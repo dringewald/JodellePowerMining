@@ -1,3 +1,36 @@
+/**
+ * Listener that applies PowerTool “area mining” mechanics to block breaking.
+ *
+ * <p>This listener reacts to {@link org.bukkit.event.block.BlockBreakEvent} and extends the normal
+ * one-block break behavior into an area-of-effect (AoE) break when the player uses a valid
+ * PowerTool (e.g., Hammer or Excavator). The AoE shape is determined by:</p>
+ * <ul>
+ *   <li>The player-facing {@link org.bukkit.block.BlockFace} tracked by the plugin’s {@code PlayerInteractListener}.</li>
+ *   <li>Configured radius/depth values (defaults from {@link jodelle.powermining.lib.Reference}).</li>
+ *   <li>{@link jodelle.powermining.utils.PowerUtils#getSurroundingBlocks(BlockFace, Block, int, int)}.</li>
+ * </ul>
+ *
+ * <h2>Main responsibilities</h2>
+ * <ul>
+ *   <li><b>Validation:</b> Ensures the player is eligible (not sneaking, holding a PowerTool, has permission).</li>
+ *   <li><b>AoE block selection:</b> Computes surrounding blocks and excludes the center block (already handled by Bukkit).</li>
+ *   <li><b>Protection checks:</b> Verifies each candidate block may be modified via
+ *       {@link jodelle.powermining.utils.PowerUtils#canBreak(PowerMining, Player, Block)}.</li>
+ *   <li><b>Tool compatibility:</b> Determines whether the tool functions as a Hammer or Excavator for a given block type
+ *       using {@link jodelle.powermining.utils.PowerUtils#validateHammer(Material, Material)} and
+ *       {@link jodelle.powermining.utils.PowerUtils#validateExcavator(Material, Material)}.</li>
+ *   <li><b>Durability handling:</b> Optionally reduces durability per broken block depending on
+ *       {@code useDurabilityPerBlock} configuration; includes an inventory update safeguard when the tool breaks.</li>
+ *   <li><b>Experience handling:</b> Computes XP to drop from configuration, fires a {@link org.bukkit.event.block.BlockExpEvent}
+ *       for each broken AoE block, and spawns {@link org.bukkit.entity.ExperienceOrb} accordingly (unless Silk Touch applies).</li>
+ *   <li><b>Plugin integration:</b> Notifies Jobs integration (if present) prior to breaking each block.</li>
+ *   <li><b>Diagnostics:</b> Emits debug output through {@link jodelle.powermining.lib.DebuggingMessages} for troubleshooting.</li>
+ * </ul>
+ *
+ * <h2>Threading</h2>
+ * <p>Runs on the Bukkit main thread. A one-tick delayed task is scheduled in survival mode to ensure the
+ * client inventory view is updated correctly if the tool breaks.</p>
+ */
 package jodelle.powermining.listeners;
 
 import jodelle.powermining.PowerMining;
@@ -29,21 +62,23 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 
 /**
- * Listener for handling {@link BlockBreakEvent} in the PowerMining plugin.
+ * Creates a new {@code BlockBreakListener}, initializes dependencies, registers
+ * events, and logs configuration.
  *
  * <p>
- * This class manages the mechanics of breaking blocks using custom PowerTools
- * such as Hammers and Excavators. It determines the area of effect, reduces
- * tool durability, grants experience, and integrates with job-tracking plugins.
+ * The listener registers itself with the server
+ * {@link org.bukkit.plugin.PluginManager} so it can receive
+ * {@link org.bukkit.event.block.BlockBreakEvent} callbacks. It also obtains the
+ * plugin’s
+ * {@link jodelle.powermining.lib.DebuggingMessages} instance and logs the
+ * current value of
+ * {@code useDurabilityPerBlock} to the console for diagnostics.
  * </p>
  */
 public class BlockBreakListener implements Listener {
 
     /** Plugin instance (non-null). */
     private final @Nonnull PowerMining plugin;
-
-    /** Whether durability should be reduced per affected block. */
-    private final boolean useDurabilityPerBlock;
 
     /** Debug message helper (non-null). */
     private final @Nonnull DebuggingMessages debuggingMessages;
@@ -58,19 +93,70 @@ public class BlockBreakListener implements Listener {
         this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
 
         this.debuggingMessages = Objects.requireNonNull(this.plugin.getDebuggingMessages(), "debuggingMessages");
-        this.useDurabilityPerBlock = this.plugin.getConfig().getBoolean("useDurabilityPerBlock");
+        debuggingMessages.sendConsoleMessage(
+                ChatColor.YELLOW + "Config (BlockBreakListener) useDurabilityPerBlock="
+                        + this.plugin.getConfig().getBoolean("useDurabilityPerBlock"));
     }
 
     /**
-     * Handles block breaking events and applies PowerTool effects.
+     * Handles the center block break event and applies PowerTool AoE effects to
+     * additional blocks.
      *
      * <p>
-     * This method verifies that the player is using a PowerTool, determines the
-     * affected blocks, reduces durability, grants XP, and integrates with
-     * JobsReborn if enabled.
+     * This handler is invoked when a player breaks a block. It performs early
+     * checks (holding an item,
+     * using a PowerTool, permissions, not sneaking), determines the player-facing
+     * direction via the
+     * plugin’s {@code PlayerInteractListener}, computes surrounding blocks
+     * (radius/depth), and then
+     * attempts to break each additional block that is compatible with the tool.
      * </p>
      *
-     * @param event The {@link BlockBreakEvent} triggered when a block is broken.
+     * <h4>Processing steps</h4>
+     * <ol>
+     * <li><b>Early exit:</b> Returns immediately if the player is not holding an
+     * item or if the interaction fails
+     * {@link #basicVerifications(Player, ItemStack)}.</li>
+     * <li><b>Direction lookup:</b> Retrieves the player’s last known facing
+     * {@link org.bukkit.block.BlockFace}. If unavailable,
+     * the AoE operation is aborted to avoid incorrect block selection.</li>
+     * <li><b>AoE computation:</b> Reads {@code Radius} and {@code Depth} from
+     * configuration (falling back to
+     * {@link jodelle.powermining.lib.Reference}), converts them into internal
+     * values (non-negative, minus one),
+     * and requests the block list from
+     * {@link jodelle.powermining.utils.PowerUtils#getSurroundingBlocks(org.bukkit.block.BlockFace, org.bukkit.block.Block, java.lang.Integer, java.lang.Integer)}.</li>
+     * <li><b>Center exclusion:</b> Removes the original (center) block from the
+     * list because Bukkit already processes it
+     * as part of the original {@link org.bukkit.event.block.BlockBreakEvent}.</li>
+     * <li><b>Tool break safety:</b> In {@link org.bukkit.GameMode#SURVIVAL},
+     * schedules a 1-tick delayed inventory update to
+     * ensure proper client sync if the tool breaks and becomes
+     * {@link org.bukkit.Material#AIR}.</li>
+     * <li><b>Breaking loop:</b> For each surrounding block:
+     * <ul>
+     * <li>Calls {@link #checkAndBreakBlock(Player, ItemStack, Block)} to validate
+     * and break the block.</li>
+     * <li>If a block was actually broken and {@code useDurabilityPerBlock} is
+     * enabled, reduces durability once per block
+     * (survival mode only).</li>
+     * <li>If XP is returned, fires {@link org.bukkit.event.block.BlockExpEvent} and
+     * spawns an {@link org.bukkit.entity.ExperienceOrb}
+     * with the event-adjusted XP value.</li>
+     * </ul>
+     * </li>
+     * </ol>
+     *
+     * <p>
+     * <b>Important:</b> This method does not attempt to apply additional durability
+     * loss when per-block durability is disabled.
+     * The center block is expected to follow vanilla durability rules, while AoE
+     * blocks apply durability only in per-block mode.
+     * </p>
+     *
+     * @param event the {@link org.bukkit.event.block.BlockBreakEvent} fired by
+     *              Bukkit; ignored if cancelled due to
+     *              {@code ignoreCancelled=true}
      */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -140,13 +226,16 @@ public class BlockBreakListener implements Listener {
                 }
             }, 1L);
         }
-
+        final boolean useDurabilityPerBlockNow = plugin.getConfig().getBoolean("useDurabilityPerBlock");
         for (Block block : surroundingBlocks) {
             final BreakResult result = checkAndBreakBlock(player, handItem, Objects.requireNonNull(block, "block"));
 
-            // Only reduce durability if a block was actually broken
-            if (result.broken() && player.getGameMode() == GameMode.SURVIVAL && !useDurabilityPerBlock) {
-                PowerUtils.reduceDurability(player, handItem);
+            // Track broken blocks and apply durability according to config
+            if (result.broken()) {
+                // Per-block durability loss only when enabled
+                if (player.getGameMode() == GameMode.SURVIVAL && useDurabilityPerBlockNow) {
+                    PowerUtils.reduceDurability(player, handItem);
+                }
             }
 
             // Handle XP drops
@@ -161,23 +250,90 @@ public class BlockBreakListener implements Listener {
     }
 
     /**
-     * @return The amount of XP to drop from breaking the block.
+     * Immutable result for a single AoE block-processing attempt.
+     *
+     * <p>
+     * This record communicates two outcomes back to the caller:
+     * </p>
+     * <ul>
+     * <li>{@code broken}: whether the block was actually broken by the plugin
+     * logic.</li>
+     * <li>{@code exp}: the amount of experience that should be dropped for that
+     * break (before event adjustments).</li>
+     * </ul>
+     *
+     * <p>
+     * Experience may be {@code 0} for many reasons, including:
+     * unsupported blocks/tools, protection restrictions, break failure, missing XP
+     * configuration,
+     * or Silk Touch being present on the tool.
+     * </p>
+     *
+     * @param broken {@code true} if the block was successfully broken;
+     *               {@code false} otherwise
+     * @param exp    the computed XP to drop (may be {@code 0})
      */
     private record BreakResult(boolean broken, int exp) {
     }
 
     /**
-     * Checks and breaks a block if it is compatible with the PowerTool.
+     * Validates whether the given tool should break the given block as part of AoE
+     * mining, performs the break,
+     * and computes the XP drop result.
      *
      * <p>
-     * This method validates whether the tool can break the given block, notifies
-     * JobsReborn (if enabled), and determines the experience points (XP) to drop.
+     * This helper centralizes the AoE “can I break it?” logic for a single block.
+     * It determines whether
+     * the player’s tool qualifies as a Hammer or Excavator for the target block
+     * type, checks protection rules,
+     * optionally notifies Jobs integration, executes
+     * {@link org.bukkit.block.Block#breakNaturally(ItemStack)},
+     * and calculates how much XP to drop (respecting Silk Touch).
      * </p>
      *
-     * @param player   The player breaking the block.
-     * @param handItem The tool being used to break the block.
-     * @param block    The {@link Block} being broken.
-     * @return The amount of XP to drop from breaking the block.
+     * <h2>Rules enforced</h2>
+     * <ul>
+     * <li><b>Tool presence:</b> If the tool is {@link org.bukkit.Material#AIR}, no
+     * action is taken.</li>
+     * <li><b>Tool/block compatibility:</b> Uses
+     * {@link jodelle.powermining.utils.PowerUtils#validateHammer(Material, Material)}
+     * first; if not a hammer, tries
+     * {@link jodelle.powermining.utils.PowerUtils#validateExcavator(Material, Material)}.</li>
+     * <li><b>Protection:</b> Aborts if
+     * {@link jodelle.powermining.utils.PowerUtils#canBreak(PowerMining, Player, Block)}
+     * denies the break.</li>
+     * <li><b>Jobs integration:</b> If a jobs hook exists, calls
+     * {@code notifyJobs(player, block)} before breaking to ensure
+     * job tracking receives credit for the block.</li>
+     * <li><b>XP configuration:</b> Reads XP ranges from the {@code xp-drops} config
+     * section keyed by block material name.
+     * If the section or block entry is missing, XP defaults to {@code 0}. If
+     * {@code max < min}, XP defaults to {@code 0}.</li>
+     * <li><b>Break execution:</b> Uses
+     * {@link org.bukkit.block.Block#breakNaturally(ItemStack)}; if it returns
+     * {@code false},
+     * the operation is treated as not broken and XP is {@code 0}.</li>
+     * <li><b>Silk Touch:</b> If the tool has
+     * {@link org.bukkit.enchantments.Enchantment#SILK_TOUCH}, XP is forced to
+     * {@code 0}
+     * even when the block is broken.</li>
+     * </ul>
+     *
+     * <h2>Random XP selection</h2>
+     * <p>
+     * When both {@code min} and {@code max} are valid, the XP value is selected
+     * uniformly from the inclusive range
+     * {@code [min, max]}.
+     * </p>
+     *
+     * @param player   the player attempting to break the block; must not be
+     *                 {@code null}
+     * @param handItem the tool used to break; must not be {@code null}
+     * @param block    the target block; must not be {@code null}
+     * @return a {@link BreakResult} indicating whether the block was broken and the
+     *         XP to drop (possibly {@code 0})
+     * @throws NullPointerException if {@code player}, {@code handItem}, or
+     *                              {@code block} is {@code null}
      */
     private BreakResult checkAndBreakBlock(@Nonnull Player player, @Nonnull ItemStack handItem, @Nonnull Block block) {
         Objects.requireNonNull(player, "player");
@@ -245,11 +401,6 @@ public class BlockBreakListener implements Listener {
             return new BreakResult(false, 0);
         }
 
-        // If durability is handled per broken block, apply it here
-        if (player.getGameMode() == GameMode.SURVIVAL && useDurabilityPerBlock) {
-            PowerUtils.reduceDurability(player, handItem);
-        }
-
         // If Silk Touch is present, do not drop XP
         if (handItem.getItemMeta() != null && handItem.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
             debuggingMessages.sendConsoleMessage(
@@ -261,17 +412,36 @@ public class BlockBreakListener implements Listener {
     }
 
     /**
-     * Performs basic verifications before applying PowerTool effects.
+     * Performs fast, conservative checks to decide whether PowerTool AoE mechanics
+     * should be applied.
      *
      * <p>
-     * This method ensures the player is using a valid PowerTool, has permissions,
-     * and is not sneaking to bypass the special tool mechanics.
+     * This method is intentionally strict: if any requirement is not met, it
+     * returns {@code true} to indicate
+     * the caller should stop and allow normal (vanilla) behavior to proceed without
+     * AoE processing.
      * </p>
      *
-     * @param player   The player using the tool.
-     * @param handItem The tool being used.
-     * @return {@code true} if the tool should behave normally, {@code false} if
-     *         PowerTool mechanics apply.
+     * <h2>Checks performed</h2>
+     * <ul>
+     * <li><b>Tool present:</b> Returns {@code true} if the player holds
+     * {@link org.bukkit.Material#AIR}.</li>
+     * <li><b>Sneaking bypass:</b> Returns {@code true} if the player is sneaking,
+     * allowing players to opt out of AoE behavior.</li>
+     * <li><b>PowerTool detection:</b> Returns {@code true} if the item is not
+     * recognized as a PowerTool via
+     * {@link jodelle.powermining.utils.PowerUtils#isPowerTool(ItemStack)}.</li>
+     * <li><b>Permission enforcement:</b> Returns {@code true} if
+     * {@link jodelle.powermining.utils.PowerUtils#checkUsePermission(PowerMining, Player, Material)}
+     * fails for this tool type.</li>
+     * </ul>
+     *
+     * @param player   the player breaking blocks; must not be {@code null}
+     * @param handItem the item in the player’s main hand; must not be {@code null}
+     * @return {@code true} if AoE processing should be skipped; {@code false} if
+     *         PowerTool mechanics may be applied
+     * @throws NullPointerException if {@code player} or {@code handItem} is
+     *                              {@code null}
      */
     private boolean basicVerifications(@Nonnull Player player, @Nonnull ItemStack handItem) {
         Objects.requireNonNull(player, "player");

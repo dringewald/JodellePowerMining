@@ -34,16 +34,16 @@ language: en_US
 # - If disabled (false), your tool only loses durability **once per use**, no matter how many blocks are broken.
 #
 # 🔹 Example:
-# - If you break 10 blocks at once:
-#   - **true** → The tool takes *0 durability damage**.
+# - If you break 9 blocks at once:
+#   - **true** → The tool takes *9 durability damage**.
 #   - **false** → The tool takes **only 1 durability damage**.
 #
 # 🔹 Recommended:
 # - Set to **false** for longer-lasting tools.
 # - Set to **true** for a more balanced gameplay experience.
 #
-# Default: false
-useDurabilityPerBlock: false
+# Default: true
+useDurabilityPerBlock: true
 
 # Configure how many blocks your tool breaks at once.
 #
