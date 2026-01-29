@@ -1,8 +1,8 @@
 name: JodellePowerMining
 main: jodelle.powermining.PowerMining
 version: 1.5
-authors: [JodelleLover, Holt]
-description: Implements Hammer, Excavator and Plow tools for faster mining, version updated from BloodyShade.
+authors: [Holt, mgl23606, bloodyshade]
+description: Implements Hammer, Excavator and Plow tools for faster mining, version updated from BloodyShade and mgl23606 (JodelleLover).
 api-version: "1.21.11"
 softdepend: [worldguard, Jobs]
 
@@ -20,14 +20,9 @@ permissions:
             powermining.admin: true
             powermining.version: true
             powermining.give: true
-            powermining.highdurability: true
             powermining.craft.all: true
             powermining.use.all: true
             powermining.enchant.all: true
-
-    powermining.highdurability:
-        description: Allows player's PowerTool to use only 1 durability per use
-        default: true
 
     powermining.version:
         description: Allows using `/powermining version`
