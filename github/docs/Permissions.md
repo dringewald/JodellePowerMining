@@ -1,10 +1,23 @@
 # 🔑 Permissions
+Operators get every permission through `powermining.all`. Single tiers default to `false` and are granted
+through the matching `.all` permission, for example `powermining.use.hammer.all` for every hammer.
+
 ## General Permissions
 | **Permission** | **Description** | **Default** |
 |--------------|----------------|------------|
 | `powermining.all` | Grants all permissions | `op` |
 | `powermining.give` | Allows receiving a PowerTool via `/powermining give <tool>` | `op` |
+| `powermining.version` | Allows using `/powermining version` | `op` |
 | `powermining.toggle` | Allows turning area mining on or off via `/powermining toggle` | `true` |
+
+## Admin Permissions
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.admin` | Grants all admin commands | `op` |
+| `powermining.admin.help` | Allows using `/powermining admin help` | `op` |
+| `powermining.admin.reload` | Allows using `/powermining admin reload` | `op` |
+| `powermining.admin.language` | Allows using `/powermining admin language <language>` | `op` |
+| `powermining.admin.debug` | Allows using `/powermining admin debug` | `op` |
 
 
 ## Crafting Permissions
@@ -122,3 +135,47 @@
 | `powermining.enchant.excavator.all` | Allows enchanting all Excavators | `op` |
 | `powermining.enchant.plow.all` | Allows enchanting all Plows | `op` |
 | `powermining.enchant.sickle.all` | Allows enchanting all Sickles | `op` |
+
+### Hammer Enchanting
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.enchant.hammer.wooden` | Allows enchanting the Wooden Hammer | `false` |
+| `powermining.enchant.hammer.stone` | Allows enchanting the Stone Hammer | `false` |
+| `powermining.enchant.hammer.iron` | Allows enchanting the Iron Hammer | `false` |
+| `powermining.enchant.hammer.golden` | Allows enchanting the Golden Hammer | `false` |
+| `powermining.enchant.hammer.diamond` | Allows enchanting the Diamond Hammer | `false` |
+| `powermining.enchant.hammer.netherite` | Allows enchanting the Netherite Hammer | `false` |
+| `powermining.enchant.hammer.copper` | Allows enchanting the Copper Hammer | `false` |
+
+### Excavator Enchanting
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.enchant.excavator.wooden` | Allows enchanting the Wooden Excavator | `false` |
+| `powermining.enchant.excavator.stone` | Allows enchanting the Stone Excavator | `false` |
+| `powermining.enchant.excavator.iron` | Allows enchanting the Iron Excavator | `false` |
+| `powermining.enchant.excavator.golden` | Allows enchanting the Golden Excavator | `false` |
+| `powermining.enchant.excavator.diamond` | Allows enchanting the Diamond Excavator | `false` |
+| `powermining.enchant.excavator.netherite` | Allows enchanting the Netherite Excavator | `false` |
+| `powermining.enchant.excavator.copper` | Allows enchanting the Copper Excavator | `false` |
+
+### Plow Enchanting
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.enchant.plow.wooden` | Allows enchanting the Wooden Plow | `false` |
+| `powermining.enchant.plow.stone` | Allows enchanting the Stone Plow | `false` |
+| `powermining.enchant.plow.iron` | Allows enchanting the Iron Plow | `false` |
+| `powermining.enchant.plow.golden` | Allows enchanting the Golden Plow | `false` |
+| `powermining.enchant.plow.diamond` | Allows enchanting the Diamond Plow | `false` |
+| `powermining.enchant.plow.netherite` | Allows enchanting the Netherite Plow | `false` |
+| `powermining.enchant.plow.copper` | Allows enchanting the Copper Plow | `false` |
+
+### Sickle Enchanting
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.enchant.sickle.wooden` | Allows enchanting the Wooden Sickle | `false` |
+| `powermining.enchant.sickle.stone` | Allows enchanting the Stone Sickle | `false` |
+| `powermining.enchant.sickle.iron` | Allows enchanting the Iron Sickle | `false` |
+| `powermining.enchant.sickle.golden` | Allows enchanting the Golden Sickle | `false` |
+| `powermining.enchant.sickle.diamond` | Allows enchanting the Diamond Sickle | `false` |
+| `powermining.enchant.sickle.netherite` | Allows enchanting the Netherite Sickle | `false` |
+| `powermining.enchant.sickle.copper` | Allows enchanting the Copper Sickle | `false` |

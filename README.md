@@ -1,143 +1,178 @@
-# ⚡ Jodelle Power Mining  
-*A powerful tool enhancement plugin for Spigot servers!*  
+# Jodelle Power Mining
 
-[![Programmed in Java](https://img.shields.io/badge/Programmed%20in-Java-f89820)](https://www.java.com/de/) 
-[![Programmed with VSCodium](https://img.shields.io/badge/Programmed%20with-VSCodium-2F80ED?logo=vscodium)](https://vscodium.com/) 
-[![](https://img.shields.io/badge/BStats-Metrics-00695c)](https://bstats.org/plugin/bukkit/JodellePowerMining/24587)
+**Area mining tools for Spigot and Paper servers: hammers, excavators, plows and sickles.**
+
+[![Programmed in Java](https://img.shields.io/badge/Programmed%20in-Java-f89820)](https://www.java.com/de/)
+[![Programmed with VSCodium](https://img.shields.io/badge/Programmed%20with-VSCodium-2F80ED?logo=vscodium)](https://vscodium.com/)
+[![bStats](https://img.shields.io/badge/BStats-Metrics-00695c)](https://bstats.org/plugin/bukkit/JodellePowerMining/24587)
 [![GNU General Public License](https://img.shields.io/badge/⚖️%20License-GNU-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)<br/>
-[![Created with ChatGPT](https://img.shields.io/badge/Created%20with-ChatGPT-10a37f?logo=openai)](https://openai.com/chatgpt)
 [![Join us on Discord](https://img.shields.io/badge/Discord-Join%20Now-5865F2?logo=discord)](https://discord.gg/jymDumdFVU)
 [![Donate on PayPal](https://img.shields.io/badge/Donate-PayPal-0070ba?logo=paypal)](https://www.paypal.com/paypalme/NoXHolt)
 [![Steam Profile](https://img.shields.io/badge/Steam-View%20Profile-000000?logo=steam)](https://steamcommunity.com/id/nox_holt)
 
-## 📌 Overview
-**Jodelle Power Mining** is a **revived and enhanced** version of an old mining plugin originally created by **bloodyshade** (2013).
+Jodelle Power Mining adds PowerTools: upgraded versions of the vanilla pickaxe, shovel, hoe and sword that
+work on a whole area instead of a single block. Every extra block is broken as if the player had mined it,
+so protection, logging and job plugins keep working.
 
-This plugin introduces **special PowerTools** that allow **efficient block breaking**, such as **3x3 mining with hammers and excavators**.  
+## Contents
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [PowerTools](#powertools)
+- [Commands](#commands)
+- [Configuration](#configuration)
+- [Textures](#textures)
+- [Integrations](#integrations)
+- [Permissions](#permissions)
+- [Changelog](#changelog)
+- [Credits](#credits)
+- [Support](#support)
 
-🔹 **Mine faster.**  
-🔹 **Dig smarter.**  
-🔹 **Customize everything.**
+## Features
+- **Four tool types** in seven tiers each, from wood to netherite, including copper.
+- **Area mining** with a configurable radius and depth, globally or per tool.
+- **Vanilla behaviour:** block tags and tool tiers decide what a tool can break. Drops, XP, Fortune,
+  Silk Touch, Unbreaking and tool damage work as with the vanilla tool.
+- **Protection friendly:** extra blocks fire a normal block break event, so Lands, WorldGuard,
+  GriefPrevention, CoreProtect and Jobs see every block.
+- **Configurable recipes**, a netherite upgrade at the smithing table and anvil repairs.
+- **Player toggle** to switch area mining off for yourself, plus worlds where PowerTools act like vanilla tools.
+- **Optional extras:** auto pickup, a mining speed factor and recipe book unlocks.
+- **Own textures** in 16x16 and 64x64, installed automatically with ItemsAdder or ResourcePackManager.
+- **Full translation support** for messages, item names and lore (English and German included).
+- **Automatic config migration** from older versions.
 
-💖 If you love this project, consider [donating](https://www.paypal.me/noxholt) to support further development!  
+## Screenshots
+| Hammer | Excavator | Plow |
+|:---:|:---:|:---:|
+| ![Hammer](./github/img/Hammer.gif?raw=true) | ![Excavator](./github/img/Excavator.gif?raw=true) | ![Plow](./github/img/Plow.gif?raw=true) |
 
-## 📖 Disclaimer
-I did not originally create this plugin!  
-I am just updating it because the **original creator** has abandoned it.  
+> Screenshots by Tom from [NoX](https://discord.gg/jymDumdFVU).
 
-I really **enjoyed** the plugin, so I decided to **update and improve it further**.
+## Requirements
+| | |
+|---|---|
+| **Server** | Spigot, Paper or a fork, Minecraft 26.3 |
+| **Java** | 25 |
+| **Optional** | WorldGuard, Jobs Reborn, ItemsAdder, ResourcePackManager |
 
-💡 **Original credits go to:**  
-- **bloodyshade** – The original creator of the plugin
-- **mgl23606** - For keeping the plugin uptodate until Minecraft 1.17
+Older Minecraft versions may work but are not tested.
 
-## 🛠️ Features
-✅ **New Power Tools** – Includes **Hammer, Excavator, and Plow** for enhanced mining & digging.  
-✅ **3x3 Mining & Digging** – Tools break multiple blocks at once (fully configurable).
-✅ **Vanilla Block Lists** - Hammers and excavators break what pickaxes and shovels are meant for, or the blocks you list yourself.  
-✅ **Protection Plugins** - Every extra block fires a normal block break, so Lands, WorldGuard, GriefPrevention, CoreProtect and Jobs apply.  
-✅ **Configurable Recipes** – Fully customizable crafting recipes for PowerTools
-✅ **Language support** – Full translation support
-✅ **Permissions System** – Control **who** can use, craft, and enchant PowerTools.  
-✅ **Multiple commands** – Check version, give PowerTools, reload config, set language, etc.  
-✅ **WorldGuard Support** – Respects **protected areas** from the [WorldGuard plugin](https://dev.bukkit.org/projects/worldguard) (optional dependency).  
-✅ **Jobs Support** – Block breaks of the tool are respecting Jobs of the [Job plugin](https://www.spigotmc.org/resources/jobs-reborn.4216/) (optional dependency).  
-✅ **Enchantments Transfer** – Tools crafted with enchanted materials inherit enchantments.  
+## Installation
+1. Download the latest `.jar` from the [releases](https://github.com/dringewald/JodellePowerMining/releases).
+2. Put it into the `plugins` folder of your server.
+3. Restart the server.
+4. Adjust `plugins/JodellePowerMining/config.yml` if needed and run `/powermining admin reload`.
 
-## 📸 Screenshots
-### Hammer
-![Hammer Usage](./github/img/Hammer.gif?raw=true)
+## PowerTools
+| Tool | Crafted from | What it does |
+|---|---|---|
+| **Hammer** | Pickaxe | Mines an area of pickaxe blocks such as stone, ores and deepslate. |
+| **Excavator** | Shovel | Digs an area of shovel blocks such as dirt, sand and gravel. Right click makes paths. |
+| **Plow** | Hoe | Tills an area of dirt and grass into farmland. |
+| **Sickle** | Sword | Harvests the ripe crops around the one you break and replants them, paid with one seed from the drops. |
 
-### Excavator
-![Excavator Usage](./github/img/Excavator.gif?raw=true)
+Each tool exists in wood, stone, copper, iron, gold, diamond and netherite. The default recipe surrounds the
+vanilla tool with four of its material:
 
-### Plow
-![Plow Usage](./github/img/Plow.gif?raw=true)
-> Thanks to Tom from [NoX](https://discord.gg/jymDumdFVU) for these Screenshots
+```
+ . M .
+ M T M      M = material (logs, stone, copper ingot, iron ingot, gold ingot, diamond, netherite ingot)
+ . M .      T = vanilla tool of the same tier
+```
 
-## 📥 Installation  
-1. **Download** the latest `.jar` from [Releases](https://github.com/dringewald/JodellePowerMining/releases).  
-2. **Place it** in the `plugins` folder of your **Spigot** server.  
-3. **Restart** your server.  
-4. **Configure** settings in the `config.yml` file if needed.  
+Diamond PowerTools can also be upgraded to netherite at the smithing table. Hold sneak to use a PowerTool
+like its vanilla tool for a single block.
 
-## 🔧 Configuration
+## Commands
+The alias `/jpm` works for every command.
 
-- With the overhaul of the plugin to Version 1.0, it **automatically migrates outdated configs** to the latest version.
-  - ⚠️ If possible use a freshly generated config file
-- The **config file now includes versioning** for future updates.
-- The `Deep` option has been **renamed to `Depth`** (this is migrated automatically).
-- The **language system** allows full translation of all messages, item names, and lore.
-- 🔧 [Config file (config.yml)](./src/main/resources/config.yml)
-
-## 📜 Commands
-| **Command** | **Description** | **Permission** |
-|------------|----------------|---------------|
-| `/powermining` | Displays plugin information | `powermining.use.commands` |
+| Command | Description | Permission |
+|---|---|---|
+| `/powermining` | Shows plugin information | `powermining.use.commands` |
 | `/powermining help` | Shows the help menu | `powermining.use.commands` |
-| `/powermining info` | Displays plugin info (same as `/powermining`) | `powermining.use.commands` |
-| `/powermining version` | Shows the current plugin version | `powermining.version` |
-| `/powermining give <tool>` | Gives a PowerTool to the player | `powermining.give` |
+| `/powermining version` | Shows the installed version | `powermining.version` |
+| `/powermining toggle` | Turns area mining on or off for yourself | `powermining.toggle` |
+| `/powermining give <tool>` | Gives you a PowerTool | `powermining.give` |
 | `/powermining admin` | Shows the admin help menu | `powermining.admin` |
-| `/powermining admin reload` | Reloads the plugin configuration and language files | `powermining.admin.reload` |
-| `/powermining admin language <language>` | Changes the language file immediately | `powermining.admin.language` |
-| `/powermining admin debug` | Toggles debug mode (Logs extra info, may spam console) | `powermining.admin.debug` |
+| `/powermining admin reload` | Reloads the config and language files | `powermining.admin.reload` |
+| `/powermining admin language <language>` | Switches the language | `powermining.admin.language` |
+| `/powermining admin debug` | Toggles debug logging | `powermining.admin.debug` |
 
-## 🎨 Textures
-The folder [resourcepack](./resourcepack) holds an own texture for every PowerTool, drawn by
-[generate_textures.py](./resourcepack/generate_textures.py) (no Mojang assets, free to use and to change).
+## Configuration
+The [config.yml](./src/main/resources/config.yml) documents every option. The most important ones:
 
-![Textures](./resourcepack/preview.png?raw=true)
+| Option | Default | Description |
+|---|---|---|
+| `language` | `en_US` | Language file to use |
+| `Radius` / `Depth` | `2` / `1` | Size of the mining area (radius 2 is 3x3) |
+| `toolSizes` | none | Radius and depth for single PowerTools, for example a 5x5 Netherite Hammer |
+| `useDurabilityPerBlock` | `true` | Every broken block costs durability, not just the one you hit |
+| `disabledWorlds` | none | Worlds where PowerTools act like vanilla tools |
+| `autoPickup` | `false` | Drops go straight into the inventory |
+| `miningSpeed` | `1.0` | Speed factor compared to the vanilla tool |
+| `netheriteSmithing` | `true` | Allows the netherite upgrade at the smithing table |
+| `unlockRecipes` | `true` | Adds the recipes a player may craft to the recipe book |
+| `customItemModels` | `false` | PowerTools use their own textures from the resource pack |
+| `installTextures` | `true` | Hands the textures to ItemsAdder or ResourcePackManager |
+| `legacyMining` | `false` | Uses the old, faster way of breaking blocks without block break events |
+| `customBlockList` | `false` | Uses the `Minable` and `Diggable` lists instead of the vanilla block tags |
 
-The folder [resourcepack-hd](./resourcepack-hd) holds the same tools in 64x64, drawn by
-[generate_hd_textures.py](./resourcepack/generate_hd_textures.py). Use one of the two packs, both use the same item names.
+Configs from older versions are migrated automatically on start. Recipes and XP drops can be changed in
+the `recipes` and `xp-drops` sections.
 
-![Textures 64x64](./resourcepack-hd/preview.png?raw=true)
+## Textures
+The plugin ships its own textures for every PowerTool, created with scripts in this repository and free
+to use and change. No Mojang assets are included.
 
-**With ItemsAdder or ResourcePackManager:** the plugin hands the 64x64 textures to them on every start
-(`installTextures: true`). With ItemsAdder run `/iazip` once, ResourcePackManager merges the pack by itself.
-Then go on with step 2.
+| 16x16 ([resourcepack](./resourcepack)) | 64x64 ([resourcepack-hd](./resourcepack-hd)) |
+|:---:|:---:|
+| ![Textures 16x16](./resourcepack/preview.png?raw=true) | ![Textures 64x64](./resourcepack-hd/preview.png?raw=true) |
 
-1. Without these plugins: zip `pack.mcmeta` and `assets` of one pack as server resource pack, or merge the `assets`
-   folder into the pack of another resource pack plugin.
-2. Set `customItemModels: true` in the config and run `/powermining admin reload`.
-3. Newly crafted PowerTools use the textures. Tools crafted before keep the vanilla look.
+**With ItemsAdder or ResourcePackManager** the plugin installs the 64x64 textures on every start:
+- ItemsAdder: run `/iazip` once after the first start or an update.
+- ResourcePackManager: the pack is merged and hosted automatically.
 
-## 🔑 Permissions
-You can find all Permissions [here](./github/docs/Permissions.md)
+**Without these plugins** zip `pack.mcmeta` and the `assets` folder of one pack and use it as server
+resource pack, or merge `assets` into the pack of another resource pack plugin.
 
-## **📌 Change Log**
-### **🆕 Latest Updates - November 15, 2026 (v1.7)**
-- **⛏️ Protection plugins** - Extra blocks are now broken as if the player mined them, so Lands, WorldGuard, GriefPrevention, CoreProtect and Jobs see every block. Drops, XP and tool damage follow vanilla. The plow asks protection plugins before tilling. `legacyMining: true` brings back the old way.
-- **📋 Block lists** - Hammers and excavators now use the vanilla block tags, so new blocks work without a config change and the tool tier is checked like in vanilla. Blocks with an inventory are skipped. `customBlockList: true` keeps using the "Minable" and "Diggable" lists.
-- **🟠 Copper tools** - Added the Copper Hammer, Copper Excavator and Copper Plow, with recipes, permissions and translations.
-- **🔀 Toggle** - `/powermining toggle` turns area mining off and on for yourself. The choice survives restarts.
-- **📏 Sizes per tool** - The new `toolSizes` section sets Radius and Depth for single PowerTools, for example 5x5 for the Netherite Hammer.
-- **🌱 Plow and excavator** - Till coarse dirt, rooted dirt and paths, and make paths on dirt, podzol, mycelium, coarse and rooted dirt, as in vanilla. Farmland and paths now need air above.
-- **🌾 Sickle** - New PowerTool made from a sword. Breaking a ripe crop harvests the ripe crops around it and plants them again, paid with one seed from the drops.
-- **🔨 Netherite upgrade** - Diamond PowerTools can be upgraded at the smithing table like vanilla tools, enchantments stay.
-- **🎒 Auto pickup** - Optional: drops go straight into the inventory (`autoPickup`).
-- **🐢 Mining speed** - Optional factor for how fast PowerTools break the block you hit (`miningSpeed`).
-- **🎨 Textures** - Own textures for every PowerTool in 16x16 (`resourcepack`) and 64x64 (`resourcepack-hd`), used with `customItemModels: true`. With ItemsAdder or ResourcePackManager the plugin installs the 64x64 textures by itself.
-- **🌍 Disabled worlds** - PowerTools work like vanilla tools in the worlds listed in `disabledWorlds`.
-- **📖 Recipe book** - Players get the recipes they may craft in their recipe book.
-- **🚀 Releases** - Pushing a version tag builds the plugin and publishes a GitHub release.
-- **🐞 Fixes** - Mining stops when the tool breaks, `/powermining admin reload` no longer keeps blocks removed from the lists, and the plugin no longer keeps data of players who left.
-You'll find every changelog [here](./github/docs/Changelog.md)
+Then set `customItemModels: true` and run `/powermining admin reload`. PowerTools crafted from then on use
+the new textures. The textures are generated by [generate_textures.py](./resourcepack/generate_textures.py)
+and [generate_hd_textures.py](./resourcepack/generate_hd_textures.py).
 
-## **🌎 Useful Links**
-- 🔗 [BStats Page](https://bstats.org/plugin/bukkit/JodellePowerMining/24587)
-- 🔗 [Spigot (since 1.21 (in progress))](.)  
-- 🔗 [Spigot (until 1.17)](https://www.spigotmc.org/resources/jodelle-powermining.59834/)  
-- 🔗 [Github (until 1.17)](https://github.com/mgl23606/JodellePowerMining/)  
+## Integrations
+| Plugin | Support |
+|---|---|
+| [WorldGuard](https://dev.bukkit.org/projects/worldguard) | Respects protected regions |
+| [Jobs Reborn](https://www.spigotmc.org/resources/jobs-reborn.4216/) | Every broken block counts for jobs |
+| Lands, GriefPrevention, CoreProtect and others | Supported through normal block break events |
+| ItemsAdder | Textures are installed into its contents folder |
+| [ResourcePackManager](https://wiki.nightbreak.io/ResourcePackManager/info/) | Textures are registered through its API |
 
-## **🚀 Future Plans**
-- Adding Coppertools
-- Adding the newer blocks (1.21.11 up to 26.3, e.g. Cinnabar and Sulfur)
-- Open to suggestions!  
-- If you have feature requests, feel free to **open an issue**.
+## Permissions
+All permissions are listed in [Permissions.md](./github/docs/Permissions.md). Operators have everything by
+default. To give players all PowerTools, grant `powermining.craft.all`, `powermining.use.all` and
+`powermining.enchant.all`.
 
-## **📢 Support & Contributions**
-If you enjoy this plugin, please consider **[contributing](https://github.com/dringewald/JodellePowerMining/) or [donating](https://www.paypal.me/noxholt)** to help keep development active!  
+## Changelog
+**Version 1.7** (November 15, 2026) brings event-based mining for protection plugins, vanilla block tags,
+copper tools, the sickle, per-tool sizes, the player toggle, the netherite upgrade, auto pickup, own
+textures with ItemsAdder and ResourcePackManager support, and several fixes.
 
-⚡ **Supercharge your mining experience with Jodelle Power Mining!** ⚡  
+The full history is in the [changelog](./github/docs/Changelog.MD).
+
+## Credits
+This plugin is a revived and extended version of the original PowerMining:
+- **bloodyshade**: original author (2013)
+- **mgl23606**: maintained the plugin up to Minecraft 1.17 ([repository](https://github.com/mgl23606/JodellePowerMining/))
+- **Holt**: current maintainer
+
+## Support
+- Questions, bug reports and feature requests: [GitHub issues](https://github.com/dringewald/JodellePowerMining/issues) or [Discord](https://discord.gg/jymDumdFVU)
+- Usage statistics: [bStats](https://bstats.org/plugin/bukkit/JodellePowerMining/24587)
+- Older versions: [Spigot (up to 1.17)](https://www.spigotmc.org/resources/jodelle-powermining.59834/)
+
+If you like the plugin, contributions and [donations](https://www.paypal.me/noxholt) help to keep it maintained.
+
+## License
+Licensed under the [GNU General Public License v3.0](./LICENSE).

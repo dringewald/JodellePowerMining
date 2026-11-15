@@ -42,7 +42,7 @@
 
 ### 📅 **February 16, 2025**
 - **💼 Jobs** - Fixed plugin not working, when [Jobs Reborn](https://www.spigotmc.org/resources/jobs-reborn.4216/) wasn't installed.
-- **🔨 Anvils** - Fixed Anvils not adding durability when the Item with lower durability was on the right site. 
+- **🔨 Anvils** - Fixed Anvils not adding durability when the Item with lower durability was on the right side. 
 - **✨ Enchantments** - Fixed Unbreaking enchantment not working correctly.
 - **🛠️ Durability** - Fixed Items with enchantments not breaking correctly.
 
@@ -52,7 +52,7 @@
 ### 📅 **January 29, 2025**
 - **🔄 Updated plugin to fully work in Minecraft 1.21.4** - Earlier versions are not supported (should work, but untested).
 - **🔤 Added full Language system** – Everything is translatable (messages, items, commands).
-- **🔨 Added Anvil support** Let's you repair and fix your PowerTool without loosing your precious ressources.
+- **🔨 Added Anvil support** Let's you repair and fix your PowerTool without losing your precious resources.
 - **🛠️ Added admin commands** – `reload`, `language`, `debug`, etc.
 - **🪨 Added missing blocks up to Minecraft 1.21.4**.
 - **📁 Introduced Config Versioning** – For future automatic updates.
