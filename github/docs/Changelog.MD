@@ -1,11 +1,16 @@
 # **📌 Changelog**
-## **🆕 Latest Updates - January 29, 2026 (v1.5)**
+## **🆕 Latest Updates - November 15, 2026 (v1.6)**
+- **🔄 Updated plugin to Minecraft 26.3** - Built against the Spigot API 26.3. Earlier versions are not supported (should work, but untested).
+- **☕ Java 25** - The plugin now needs Java 25, like Minecraft 26.x itself.
+- **📦 Dependencies** - Updated WorldGuard, bStats and the bundled libraries.
+
+## **📌 Previous Updates**
+### 📅 **January 29, 2026 (v1.5)**
 - **🔄 Updated plugin to fully work in Minecraft 1.21.11** - Earlier versions are not supported (should work, but untested).
 - **📑 Docs** Added JavaDocs for Developers.
 - **♻️ Updater (BETA)** Removed Spigot-Updater and added an untested Github Updater for the plugin.
 - **🛠️ Durability** - Fixed durability config options, so durability will be correctly reduced.
 
-## **📌 Previous Updates**
 ### 📅 **Sep 21, 2025 (v1.4)**
 - **🔄 Updated plugin to fully work in Minecraft 1.21.8** - Earlier versions are not supported (should work, but untested).
 

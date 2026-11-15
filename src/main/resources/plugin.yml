@@ -1,9 +1,9 @@
 name: JodellePowerMining
 main: jodelle.powermining.PowerMining
-version: 1.5
+version: 1.6
 authors: [Holt, mgl23606, bloodyshade]
 description: Implements Hammer, Excavator and Plow tools for faster mining, version updated from BloodyShade and mgl23606 (JodelleLover).
-api-version: "1.21.11"
+api-version: "26.3"
 softdepend: [worldguard, Jobs]
 
 commands:

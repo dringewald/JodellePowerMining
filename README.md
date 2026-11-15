@@ -86,11 +86,10 @@ I really **enjoyed** the plugin, so I decided to **update and improve it further
 You can find all Permissions [here](./github/docs/Permissions.md)
 
 ## **📌 Change Log**
-### **🆕 Latest Updates - January 29, 2026 (v1.5)**
-- **🔄 Updated plugin to fully work in Minecraft 1.21.11** - Earlier versions are not supported (should work, but untested).
-- **📑 Docs** Added JavaDocs for Developers.
-- **♻️ Updater (BETA)** Removed Spigot-Updater and added an untested Github Updater for the plugin.
-- **🛠️ Durability** - Fixed durability config options, so durability will be correctly reduced.  
+### **🆕 Latest Updates - November 15, 2026 (v1.6)**
+- **🔄 Updated plugin to Minecraft 26.3** - Built against the Spigot API 26.3. Earlier versions are not supported (should work, but untested).
+- **☕ Java 25** - The plugin now needs Java 25, like Minecraft 26.x itself.
+- **📦 Dependencies** - Updated WorldGuard, bStats and the bundled libraries.
 You'll find every changelog [here](./github/docs/Changelog.md)
 
 ## **🌎 Useful Links**
@@ -101,7 +100,7 @@ You'll find every changelog [here](./github/docs/Changelog.md)
 
 ## **🚀 Future Plans**
 - Adding Coppertools
-- Adding 1.21.11 blocks
+- Adding the newer blocks (1.21.11 up to 26.3, e.g. Cinnabar and Sulfur)
 - Open to suggestions!  
 - If you have feature requests, feel free to **open an issue**.
 
