@@ -3,19 +3,19 @@ main: jodelle.powermining.PowerMining
 version: 1.7
 authors: [Holt, mgl23606, bloodyshade]
 website: https://github.com/dringewald/JodellePowerMining
-description: Implements Hammer, Excavator and Plow tools for faster mining, version updated from BloodyShade and mgl23606 (JodelleLover).
+description: Area mining PowerTools (Hammer, Excavator, Plow and Sickle) in every tier from wood to netherite. Based on the original plugin by bloodyshade and mgl23606.
 api-version: "26.3"
 softdepend: [worldguard, Jobs, ItemsAdder, ResourcePackManager]
 
 commands:
     powermining:
         usage: /<command>
-        description: Gives a powertool
+        description: Main command of JodellePowerMining (help, toggle, give, version and admin commands)
         aliases: [jpm]
 
 permissions:
     powermining.all:
-        description: Grants all permissions
+        description: Grants every JodellePowerMining permission
         default: op
         children:
             powermining.admin: true
@@ -31,11 +31,11 @@ permissions:
         default: op
     
     powermining.give:
-        description: Allows player to receive a Powertool of his choice
+        description: Allows using `/powermining give <tool>` to receive any PowerTool
         default: op
 
     powermining.toggle:
-        description: Allows players to turn area mining on or off for themselves
+        description: Allows using `/powermining toggle` to turn area mining on or off for yourself
         default: true
 
     powermining.admin:
@@ -73,7 +73,7 @@ permissions:
             powermining.craft.sickle.all: true
 
     powermining.craft.hammer.all:
-        description: Allows players to craft all hammers
+        description: Allows players to craft all Hammers
         default: op
         children:
             powermining.craft.hammer.wooden: true
@@ -209,7 +209,7 @@ permissions:
         default: false
 
     powermining.use.all:
-        description: Allows players to use all Hammers and Excavators
+        description: Allows players to use all PowerTools and the default commands
         default: op
         children:
             powermining.use.hammer.all: true
@@ -219,11 +219,11 @@ permissions:
             powermining.use.commands: true
 
     powermining.use.commands:
-        description: Allows players to use default commands
+        description: Allows using `/powermining help` and `/powermining info`
         default: op
         
     powermining.use.hammer.all:
-        description: Allows players to use all hammers
+        description: Allows players to use all Hammers
         default: op
         children:
             powermining.use.hammer.wooden: true
@@ -325,7 +325,7 @@ permissions:
         default: false
 
     powermining.use.excavator.all:
-        description: Allows players to use all excavators
+        description: Allows players to use all Excavators
         default: op
         children:
             powermining.use.excavator.wooden: true
@@ -359,7 +359,7 @@ permissions:
         default: false
 
     powermining.enchant.all:
-        description: Allows players to enchant all Hammers and Excavators
+        description: Allows players to enchant all PowerTools
         default: op
         children:
             powermining.enchant.hammer.all: true
@@ -368,7 +368,7 @@ permissions:
             powermining.enchant.sickle.all: true
 
     powermining.enchant.hammer.all:
-        description: Allows players to enchant all hammers
+        description: Allows players to enchant all Hammers
         default: op
         children:
             powermining.enchant.hammer.wooden: true
@@ -470,7 +470,7 @@ permissions:
             default: false
 
     powermining.enchant.excavator.all:
-        description: Allows players to enchant all excavators
+        description: Allows players to enchant all Excavators
         default: op
         children:
             powermining.enchant.excavator.wooden: true

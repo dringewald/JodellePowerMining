@@ -47,7 +47,7 @@ so protection, logging and job plugins keep working.
 |:---:|:---:|:---:|
 | ![Hammer](./github/img/Hammer.gif?raw=true) | ![Excavator](./github/img/Excavator.gif?raw=true) | ![Plow](./github/img/Plow.gif?raw=true) |
 
-> Screenshots by Tom from [NoX](https://discord.gg/jymDumdFVU).
+> Screenshots by Users from [NoX](https://discord.gg/jymDumdFVU).
 
 ## Requirements
 | | |
@@ -89,7 +89,7 @@ The alias `/jpm` works for every command.
 
 | Command | Description | Permission |
 |---|---|---|
-| `/powermining` | Shows plugin information | `powermining.use.commands` |
+| `/powermining` | Shows plugin information | none |
 | `/powermining help` | Shows the help menu | `powermining.use.commands` |
 | `/powermining version` | Shows the installed version | `powermining.version` |
 | `/powermining toggle` | Turns area mining on or off for yourself | `powermining.toggle` |
@@ -165,7 +165,6 @@ The full history is in the [changelog](./github/docs/Changelog.MD).
 This plugin is a revived and extended version of the original PowerMining:
 - **bloodyshade**: original author (2013)
 - **mgl23606**: maintained the plugin up to Minecraft 1.17 ([repository](https://github.com/mgl23606/JodellePowerMining/))
-- **Holt**: current maintainer
 
 ## Support
 - Questions, bug reports and feature requests: [GitHub issues](https://github.com/dringewald/JodellePowerMining/issues) or [Discord](https://discord.gg/jymDumdFVU)
