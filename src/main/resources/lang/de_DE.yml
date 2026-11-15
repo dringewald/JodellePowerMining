@@ -6,6 +6,7 @@ powermining-help:
   - " "
   - "&e/powermining - &7Zeigt Informationen über dieses Plugin an"
   - "&e/powermining help - &7Zeigt dieses Hilfemenü an"
+  - "&e/powermining toggle - &7Schaltet den Flächenabbau für dich an oder aus"
   - "&e/powermining admin - &7Admin-Optionen"
   - "&e/powermining info - &7Gleiche Funktion wie /powermining"
 
@@ -38,6 +39,7 @@ plugin-info: "&2Plugin ursprünglich von &6bloodyshade&2, neu erstellt von &6mgl
 debug-mode-set: "Debug-Modus ist jetzt: "
 enabled: "aktiviert"
 disabled: "deaktiviert"
+area-mining-toggled: "&2Flächenabbau ist jetzt %status%."
 
 items:
   # Hämmer
@@ -47,6 +49,9 @@ items:
   STONE_HAMMER:
     name: "&7Steinhammer"
     lore: "&7Ein robusterer Hammer für härtere Felsen."
+  COPPER_HAMMER:
+    name: "&6Kupferhammer"
+    lore: "&7Robuster als Stein, günstiger als Eisen."
   IRON_HAMMER:
     name: "&fEisenhammer"
     lore: "&7Stark und zuverlässig zum Minen."
@@ -67,6 +72,9 @@ items:
   STONE_EXCAVATOR:
     name: "&7Steinbagger"
     lore: "&7Ein starkes Werkzeug für weichen Boden."
+  COPPER_EXCAVATOR:
+    name: "&6Kupferbagger"
+    lore: "&7Ein solides Werkzeug für den Alltag."
   IRON_EXCAVATOR:
     name: "&fEisenbagger"
     lore: "&7Perfekt für anspruchsvolle Grabearbeiten."
@@ -87,6 +95,32 @@ items:
   STONE_PLOW:
     name: "&7Steinpflug"
     lore: "&7Stärker, aber immer noch einfach."
+  COPPER_PLOW:
+    name: "&6Kupferpflug"
+    lore: "&7Ein kräftiger Pflug für wachsende Felder."
+
+  # Sicheln
+  WOODEN_SICKLE:
+    name: "&6Holzsichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  STONE_SICKLE:
+    name: "&7Steinsichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  IRON_SICKLE:
+    name: "&fEisensichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  GOLDEN_SICKLE:
+    name: "&eGoldsichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  DIAMOND_SICKLE:
+    name: "&bDiamantsichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  NETHERITE_SICKLE:
+    name: "&8Netherit-Sichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
+  COPPER_SICKLE:
+    name: "&6Kupfersichel"
+    lore: "&7Erntet reife Pflanzen ringsum und pflanzt sie neu."
   IRON_PLOW:
     name: "&fEisenpflug"
     lore: "&7Ein effizientes Werkzeug für Ackerbau."

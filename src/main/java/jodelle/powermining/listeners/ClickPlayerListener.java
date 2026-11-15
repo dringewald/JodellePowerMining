@@ -4,7 +4,7 @@
  * <p>This listener intercepts {@link org.bukkit.event.player.PlayerInteractEvent} to provide
  * custom behavior for PowerTools (e.g., hoes/shovels configured as PowerTools). When a player
  * right-clicks a valid block with a valid PowerTool, the listener can transform a set of
- * surrounding blocks (defined by {@link jodelle.powermining.lib.Reference#RADIUS} and the
+ * surrounding blocks (defined by the configured Radius and the
  * player-facing {@link org.bukkit.block.BlockFace}) into either {@link org.bukkit.Material#FARMLAND}
  * (tilling) or {@link org.bukkit.Material#DIRT_PATH} (path creation).</p>
  *
@@ -40,7 +40,6 @@ package jodelle.powermining.listeners;
 
 import jodelle.powermining.PowerMining;
 import jodelle.powermining.lib.DebuggingMessages;
-import jodelle.powermining.lib.Reference;
 import jodelle.powermining.utils.PowerUtils;
 
 import org.bukkit.ChatColor;
@@ -49,11 +48,13 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Objects;
@@ -164,6 +165,10 @@ public class ClickPlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerUse(final PlayerInteractEvent event) {
         final @Nonnull Player player = Objects.requireNonNull(event.getPlayer(), "player");
+        // Interact events fired below for the extra blocks must not start another plow action
+        if (PowerUtils.isSimulating(player)) {
+            return;
+        }
         final @Nonnull ItemStack handItem = Objects.requireNonNull(player.getInventory().getItemInMainHand(),
                 "handItem");
         final @Nonnull Material handItemType = Objects.requireNonNull(handItem.getType(), "handItemType");
@@ -173,19 +178,20 @@ public class ClickPlayerListener implements Listener {
         if (basicVerifications(action, player, handItem, handItemType, block)) {
             return;
         }
-        // Prevent vanilla hoe behavior when durability-per-use is disabled.
-        // We fully control durability handling in this mode.
-        final boolean useDurabilityPerBlockNow = plugin.getConfig().getBoolean("useDurabilityPerBlock");
-        if (!useDurabilityPerBlockNow) {
-            event.setCancelled(true);
+        final boolean legacyMining = plugin.getConfig().getBoolean("legacyMining", false);
+        // A protection plugin denied the click on the center block, so the plow must not touch anything
+        if (!legacyMining && event.useInteractedBlock() == Event.Result.DENY) {
+            return;
         }
-
-        final @Nonnull String playerName = Objects.requireNonNull(player.getName(), "playerName");
+        // The plugin handles every block and the durability itself. Vanilla would otherwise act on the clicked
+        // block again afterwards, for example turn the dirt made from coarse dirt into farmland.
+        final boolean useDurabilityPerBlockNow = plugin.getConfig().getBoolean("useDurabilityPerBlock");
+        event.setCancelled(true);
 
         final @Nonnull PlayerInteractListener pil = Objects.requireNonNull(
                 plugin.getPlayerInteractHandler().getListener(),
                 "playerInteractListener");
-        final @Nonnull BlockFace blockFace = Objects.requireNonNull(pil.getBlockFaceByPlayerName(playerName),
+        final @Nonnull BlockFace blockFace = Objects.requireNonNull(pil.getBlockFace(player.getUniqueId()),
                 "blockFace");
 
         /*
@@ -197,24 +203,35 @@ public class ClickPlayerListener implements Listener {
          * never reached this point of the code.
          */
         int changedBlocks = 0;
-        for (final Block e : PowerUtils.getSurroundingBlocksFarm(blockFace, block, Reference.RADIUS)) {
+        final int radius = Math.max(0, PowerUtils.getToolSize(plugin, handItemType, "Radius", 2) - 1);
+        for (final Block e : PowerUtils.getSurroundingBlocksFarm(blockFace, block, radius)) {
             final @Nonnull Material blockMat = Objects.requireNonNull(e.getType(), "blockMat");
 
             // Check if player has permission to break the block
             if (!PowerUtils.canBreak(plugin, player, e)) {
                 continue;
             }
+            if (!legacyMining && !e.equals(block) && !mayUse(player, handItem, e)) {
+                continue;
+            }
 
             if (PowerUtils.validatePlow(handItemType, blockMat)) {
                 debuggingMessages.sendConsoleMessage(ChatColor.RED + "Tilling: " + e.getType());
-                if (usePowerTool(player, handItem, e, Material.FARMLAND, useDurabilityPerBlockNow)) {
+                // Vanilla rules: coarse and rooted dirt become dirt, only rooted dirt may have a block above
+                final boolean rooted = blockMat == Material.ROOTED_DIRT;
+                final Material tilled = rooted || blockMat == Material.COARSE_DIRT ? Material.DIRT : Material.FARMLAND;
+                if ((rooted || hasAirAbove(e)) && usePowerTool(player, handItem, e, tilled, useDurabilityPerBlockNow)) {
+                    if (rooted) {
+                        e.getWorld().dropItemNaturally(e.getRelative(BlockFace.UP).getLocation(),
+                                new ItemStack(Material.HANGING_ROOTS));
+                    }
                     changedBlocks++;
                 }
 
                 continue;
             }
 
-            if (PowerUtils.validatePath(handItemType, blockMat)) {
+            if (PowerUtils.validatePath(handItemType, blockMat) && hasAirAbove(e)) {
                 if (usePowerTool(player, handItem, e, Material.DIRT_PATH, useDurabilityPerBlockNow)) {
                     changedBlocks++;
                 }
@@ -230,6 +247,38 @@ public class ClickPlayerListener implements Listener {
         if (!useDurabilityPerBlockNow && changedBlocks > 0 && player.getGameMode() == GameMode.SURVIVAL) {
             PowerUtils.reduceDurability(player, handItem);
         }
+    }
+
+    /**
+     * Farmland and paths need free space above, as in vanilla.
+     *
+     * @param block the block to change
+     * @return {@code true} if the block above is air
+     */
+    private static boolean hasAirAbove(@Nonnull final Block block) {
+        return block.getRelative(BlockFace.UP).getType().isAir();
+    }
+
+    /**
+     * Asks the protection plugins whether the player may use the tool on an extra
+     * block, by firing the same interact event a vanilla hoe click would fire.
+     *
+     * @param player   the player using the plow
+     * @param handItem the plow in the player's hand
+     * @param block    the extra block to till
+     * @return {@code false} if a plugin denied the interaction
+     */
+    private boolean mayUse(@Nonnull final Player player, @Nonnull final ItemStack handItem,
+            @Nonnull final Block block) {
+        final PlayerInteractEvent check = new PlayerInteractEvent(player, Action.RIGHT_CLICK_BLOCK, handItem, block,
+                BlockFace.UP, EquipmentSlot.HAND);
+        PowerUtils.startSimulating(player);
+        try {
+            plugin.getServer().getPluginManager().callEvent(check);
+        } finally {
+            PowerUtils.stopSimulating(player);
+        }
+        return check.useInteractedBlock() != Event.Result.DENY;
     }
 
     /**
@@ -351,7 +400,7 @@ public class ClickPlayerListener implements Listener {
         if (action == Action.RIGHT_CLICK_AIR) {
             return true;
         }
-        if (player.isSneaking()) {
+        if (PowerUtils.isAreaActionBlocked(plugin, player)) {
             return true;
         }
         if (handItem.getType().equals(Material.AIR)) {
@@ -361,7 +410,7 @@ public class ClickPlayerListener implements Listener {
             return true;
         }
         final @Nonnull Material blockType = Objects.requireNonNull(block.getType(), "blockType");
-        if (!PowerUtils.isTillable(blockType)) {
+        if (!PowerUtils.isTillable(blockType) && !PowerUtils.isPathable(blockType)) {
             return true;
         }
         if (!PowerUtils.isPowerTool(handItem)) {

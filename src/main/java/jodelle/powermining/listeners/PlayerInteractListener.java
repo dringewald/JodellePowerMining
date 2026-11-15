@@ -1,9 +1,11 @@
 package jodelle.powermining.listeners;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import jodelle.powermining.PowerMining;
 import jodelle.powermining.lib.DebuggingMessages;
+import jodelle.powermining.utils.PowerUtils;
 
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -11,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.annotation.Nonnull;
 
@@ -30,7 +33,7 @@ import javax.annotation.Nonnull;
  */
 public class PlayerInteractListener implements Listener {
     private final PowerMining plugin;
-    private final HashMap<String, BlockFace> faces = new HashMap<>();
+    private final HashMap<UUID, BlockFace> faces = new HashMap<>();
     private final DebuggingMessages debuggingMessages;
 
     /**
@@ -67,21 +70,33 @@ public class PlayerInteractListener implements Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void saveBlockFace(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        BlockFace bf = event.getBlockFace();
+        // Interact events fired by the plow for its extra blocks must not overwrite the face the player looks at
+        if (PowerUtils.isSimulating(player)) {
+            return;
+        }
+        faces.put(player.getUniqueId(), event.getBlockFace());
+    }
 
-        String name = player.getName();
-        faces.put(name, bf);
+    /**
+     * Forgets the stored face of a player who leaves, so the map does not grow
+     * with every player that ever joined.
+     *
+     * @param event the quit event
+     */
+    @EventHandler
+    public void forgetBlockFace(PlayerQuitEvent event) {
+        faces.remove(event.getPlayer().getUniqueId());
     }
 
     /**
      * Retrieves the last recorded {@link BlockFace} a player interacted with.
      * 
-     * @param name The name of the player whose block face interaction is being
-     *             retrieved.
+     * @param playerId The UUID of the player whose block face interaction is
+     *                 being retrieved.
      * @return The {@link BlockFace} associated with the player, or {@code null} if
      *         no interaction is recorded.
      */
-    public BlockFace getBlockFaceByPlayerName(@Nonnull final String name) {
-        return faces.get(name);
+    public BlockFace getBlockFace(@Nonnull final UUID playerId) {
+        return faces.get(playerId);
     }
 }

@@ -63,6 +63,123 @@ useDurabilityPerBlock: true
 Radius: 2
 Depth: 1
 
+# 📏 Sizes per Tool (optional)
+#
+# 🔹 What this does:
+# - Overrides Radius and Depth for single PowerTools. Tools not listed here use the values above.
+# - The plow only uses Radius.
+#
+# 🔹 Example:
+# toolSizes:
+#   NETHERITE_HAMMER:
+#     Radius: 3
+#     Depth: 1
+#   WOODEN_EXCAVATOR:
+#     Radius: 1
+#
+# Default: no overrides
+toolSizes: {}
+
+# ⛏️ Mining Mode
+#
+# 🔹 What this does:
+# - false → Every extra block is broken as if the player mined it by hand.
+#   Protection plugins (Lands, WorldGuard, GriefPrevention, ...), CoreProtect and Jobs
+#   see each block, and drops, XP and tool damage follow the vanilla rules.
+#   The plow also asks the protection plugins before it tills an extra block.
+# - true → The old way: blocks are removed directly. Only WorldGuard is checked,
+#   XP comes from the "xp-drops" list below.
+#
+# 🔹 Recommended: false. Use true only if another plugin misbehaves with the new mode.
+#
+# Default: false
+legacyMining: false
+
+# 📋 Block Lists
+#
+# 🔹 What this does:
+# - false → Hammers break every block a pickaxe is meant for, excavators every block a
+#   shovel is meant for, using the block tags of the running Minecraft version. New blocks
+#   work without a config change, and the tool tier is checked like in vanilla.
+#   Blocks with an inventory or other stored data (chests, furnaces, spawners, ...) are skipped.
+# - true → Only the blocks listed under "Minable" and "Diggable" below can be broken.
+#
+# Default: false
+customBlockList: false
+
+# 🌍 Disabled Worlds
+#
+# 🔹 What this does:
+# - In these worlds PowerTools work like their vanilla tools (no area, no harvest).
+# - Use the folder names of the worlds, for example "world_nether".
+#
+# Default: none
+disabledWorlds: []
+
+# 📖 Recipe Book
+#
+# 🔹 What this does:
+# - true → Players get the PowerTool recipes they are allowed to craft in their recipe book when they join.
+#
+# Default: true
+unlockRecipes: true
+
+# 🎒 Auto Pickup
+#
+# 🔹 What this does:
+# - true → Drops of blocks broken with a PowerTool go straight into the inventory.
+#   Whatever does not fit stays on the ground. Works for every block with legacyMining: false,
+#   with legacyMining: true only for the block you hit.
+#
+# Default: false
+autoPickup: false
+
+# 🐢 Mining Speed
+#
+# 🔹 What this does:
+# - Multiplies how fast a PowerTool breaks the block you hit, compared to its vanilla tool.
+# - 1.0 → as fast as the vanilla tool, 0.5 → half as fast, 2.0 → twice as fast.
+# - Only applies to PowerTools crafted after the change.
+#
+# Default: 1.0
+miningSpeed: 1.0
+
+# 🔨 Netherite Upgrade
+#
+# 🔹 What this does:
+# - true → A diamond PowerTool can be upgraded at the smithing table, like vanilla tools:
+#   Netherite Upgrade template + diamond PowerTool + netherite ingot. Enchantments stay.
+# - false → The smithing table refuses PowerTools. The crafting recipes below still work.
+#
+# Default: true
+netheriteSmithing: true
+
+# 🎨 Custom Item Models
+#
+# 🔹 What this does:
+# - true → Every PowerTool points to its own item model, for example "jodellepowermining:diamond_hammer",
+#   so a resource pack can give it its own texture.
+# - Only turn this on together with a resource pack that contains these models, otherwise
+#   the tools show the missing texture. Applies to PowerTools crafted after the change.
+#
+# Default: false
+customItemModels: false
+
+# 🧩 Install Textures
+#
+# 🔹 What this does:
+# - true → The plugin hands its 64x64 textures to the installed resource pack plugin on every start:
+#   - ItemsAdder: copied into plugins/ItemsAdder/contents/jodellepowermining/resourcepack.
+#     Run /iazip once after the first start or an update.
+#   - ResourcePackManager: written to plugins/JodellePowerMining/resourcepack and registered
+#     through its API, ResourcePackManager merges and hosts it.
+#   Then set customItemModels: true.
+# - Files in these folders that differ from the bundled ones are overwritten. Set this to false
+#   if you change the textures there yourself or use the 16x16 pack instead.
+#
+# Default: true
+installTextures: true
+
 # ⛏️ Minable Blocks Configuration
 #
 # 🔹 What this does:
@@ -226,96 +343,112 @@ Minable:
   - any
 - CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - EXPOSED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WEATHERED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - OXIDIZED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - EXPOSED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WEATHERED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - OXIDIZED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_EXPOSED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_WEATHERED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_OXIDIZED_CHISELED_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_EXPOSED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_WEATHERED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - WAXED_OXIDIZED_CUT_COPPER:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
@@ -364,12 +497,14 @@ Minable:
   - any
 - COPPER_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - DEEPSLATE_COPPER_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
@@ -432,24 +567,28 @@ Minable:
   - NETHERITE_PICKAXE
 - LAPIS_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - DEEPSLATE_LAPIS_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - IRON_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - DEEPSLATE_IRON_ORE:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
@@ -473,18 +612,21 @@ Minable:
   - NETHERITE_PICKAXE
 - LAPIS_BLOCK:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - IRON_BLOCK:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
   - NETHERITE_PICKAXE
 - COPPER_BLOCK:
   - STONE_PICKAXE
+  - COPPER_PICKAXE
   - IRON_PICKAXE
   - GOLDEN_PICKAXE
   - DIAMOND_PICKAXE
@@ -603,6 +745,16 @@ recipes:
       - "SPS"
       - "ESE"
 
+  COPPER_HAMMER:
+    recipe-ingredients:
+      'C': "COPPER_INGOT"
+      'P': "COPPER_PICKAXE"
+      'E': "EMPTY"
+    recipe-shape:
+      - "ECE"
+      - "CPC"
+      - "ECE"
+
   IRON_HAMMER:
     recipe-ingredients:
       'I': "IRON_INGOT"
@@ -663,6 +815,16 @@ recipes:
       - "ESE"
       - "STS"
       - "ESE"
+
+  COPPER_EXCAVATOR:
+    recipe-ingredients:
+      'C': "COPPER_INGOT"
+      'S': "COPPER_SHOVEL"
+      'E': "EMPTY"
+    recipe-shape:
+      - "ECE"
+      - "CSC"
+      - "ECE"
 
   IRON_EXCAVATOR:
     recipe-ingredients:
@@ -725,6 +887,16 @@ recipes:
       - "SHS"
       - "ESE"
 
+  COPPER_PLOW:
+    recipe-ingredients:
+      'C': "COPPER_INGOT"
+      'H': "COPPER_HOE"
+      'E': "EMPTY"
+    recipe-shape:
+      - "ECE"
+      - "CHC"
+      - "ECE"
+
   IRON_PLOW:
     recipe-ingredients:
       'I': "IRON_INGOT"
@@ -764,6 +936,77 @@ recipes:
       - "ENE"
       - "NHN"
       - "ENE"
+
+  # Sickles
+  WOODEN_SICKLE:
+    recipe-ingredients:
+      'I': "OAK_LOG"
+      'W': "WOODEN_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  STONE_SICKLE:
+    recipe-ingredients:
+      'I': "STONE"
+      'W': "STONE_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  COPPER_SICKLE:
+    recipe-ingredients:
+      'I': "COPPER_INGOT"
+      'W': "COPPER_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  IRON_SICKLE:
+    recipe-ingredients:
+      'I': "IRON_INGOT"
+      'W': "IRON_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  GOLDEN_SICKLE:
+    recipe-ingredients:
+      'I': "GOLD_INGOT"
+      'W': "GOLDEN_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  DIAMOND_SICKLE:
+    recipe-ingredients:
+      'I': "DIAMOND"
+      'W': "DIAMOND_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
+
+  NETHERITE_SICKLE:
+    recipe-ingredients:
+      'I': "NETHERITE_INGOT"
+      'W': "NETHERITE_SWORD"
+      'E': "EMPTY"
+    recipe-shape:
+      - "EIE"
+      - "IWI"
+      - "EIE"
 
 # ⚡ XP Drops Configuration
 # =========================
@@ -851,7 +1094,7 @@ xp-drops:
 # 🚨 Do NOT change this value! 🚨
 # - Modifying it may cause the plugin to stop working.
 # - If there’s an issue, delete the config file and restart the server or reload the plugin to regenerate it.
-configVersion: "1.2"
+configVersion: "1.3"
 
 # 🛠️ Debug Mode
 # -------------

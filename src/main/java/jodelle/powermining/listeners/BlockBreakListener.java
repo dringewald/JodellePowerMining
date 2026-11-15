@@ -44,6 +44,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.TileState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ExperienceOrb;
@@ -53,6 +54,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExpEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -161,8 +163,19 @@ public class BlockBreakListener implements Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         final @Nonnull Player player = Objects.requireNonNull(event.getPlayer(), "player");
+
+        // Extra blocks broken by this listener fire their own BlockBreakEvent, which must not start another area
+        if (PowerUtils.isSimulating(player)) {
+            return;
+        }
+
         final @Nonnull ItemStack handItem = Objects.requireNonNull(player.getInventory().getItemInMainHand(),
                 "handItem");
+
+        // Sickles harvest crops in their own listener
+        if (Reference.SWORDS.contains(handItem.getType())) {
+            return;
+        }
 
         // Ensure the player is holding an item
         if (handItem.getType() == Material.AIR) {
@@ -194,15 +207,15 @@ public class BlockBreakListener implements Listener {
 
         // getBlockFaceByPlayerName may return null depending on your
         // implementation/state
-        final BlockFace rawFace = pil.getBlockFaceByPlayerName(playerName);
+        final BlockFace rawFace = pil.getBlockFace(player.getUniqueId());
         if (rawFace == null) {
             debuggingMessages.sendConsoleMessage(ChatColor.RED + "BlockFace is null for player: " + playerName);
             return;
         }
         final @Nonnull BlockFace blockFace = Objects.requireNonNull(rawFace, "blockFace");
 
-        final int radius = Math.max(0, plugin.getConfig().getInt("Radius", Reference.RADIUS) - 1);
-        final int depth = Math.max(0, plugin.getConfig().getInt("Depth", Reference.DEPTH) - 1);
+        final int radius = Math.max(0, PowerUtils.getToolSize(plugin, handItem.getType(), "Radius", 2) - 1);
+        final int depth = Math.max(0, PowerUtils.getToolSize(plugin, handItem.getType(), "Depth", 1) - 1);
 
         final @Nonnull List<Block> surroundingBlocks = Objects.requireNonNull(
                 PowerUtils.getSurroundingBlocks(blockFace, centerBlock, radius, depth),
@@ -227,7 +240,19 @@ public class BlockBreakListener implements Listener {
             }, 1L);
         }
         final boolean useDurabilityPerBlockNow = plugin.getConfig().getBoolean("useDurabilityPerBlock");
+        final boolean legacyMining = plugin.getConfig().getBoolean("legacyMining", false);
+        final @Nonnull Material toolType = handItem.getType();
         for (Block block : surroundingBlocks) {
+            // Stop once the tool broke or left the hand, instead of mining on with a stale item reference
+            if (player.getInventory().getItemInMainHand().getType() != toolType) {
+                break;
+            }
+
+            if (!legacyMining) {
+                breakAsPlayer(player, toolType, Objects.requireNonNull(block, "block"));
+                continue;
+            }
+
             final BreakResult result = checkAndBreakBlock(player, handItem, Objects.requireNonNull(block, "block"));
 
             // Track broken blocks and apply durability according to config
@@ -247,6 +272,68 @@ public class BlockBreakListener implements Listener {
                 orb.setExperience(expEvent.getExpToDrop());
             }
         }
+    }
+
+    /**
+     * Breaks one extra block as if the player had mined it with the tool in hand.
+     *
+     * <p>
+     * {@link Player#breakBlock(Block)} fires a regular {@link BlockBreakEvent}, so
+     * protection plugins (Lands, WorldGuard, GriefPrevention, ...), CoreProtect
+     * logging and Jobs see every extra block. Drops, Fortune, Silk Touch, vanilla
+     * XP and tool damage follow vanilla rules.
+     * </p>
+     *
+     * @param player   the mining player
+     * @param toolType the vanilla tool the PowerTool is based on
+     * @param block    the extra block to break
+     */
+    private void breakAsPlayer(@Nonnull Player player, @Nonnull Material toolType, @Nonnull Block block) {
+        if (!canToolMine(toolType, block)) {
+            return;
+        }
+        PowerUtils.startSimulating(player);
+        try {
+            player.breakBlock(block);
+        } finally {
+            PowerUtils.stopSimulating(player);
+        }
+    }
+
+    /**
+     * Keeps the extra blocks free of durability loss when
+     * {@code useDurabilityPerBlock} is off, so only the mined block costs
+     * durability, as in the legacy mining.
+     *
+     * @param event the vanilla tool damage event
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onToolDamage(PlayerItemDamageEvent event) {
+        if (PowerUtils.isSimulating(event.getPlayer()) && !plugin.getConfig().getBoolean("useDurabilityPerBlock")) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Decides whether the tool may break the block as part of the area.
+     *
+     * <p>
+     * With the vanilla tag lists, blocks with a tile entity (chests, furnaces,
+     * hoppers, spawners, ...) are skipped, so an area never spills container
+     * contents by accident. A hand written list ({@code customBlockList}) is
+     * trusted as it is.
+     * </p>
+     *
+     * @param toolType the vanilla tool the PowerTool is based on
+     * @param block    the block to check
+     * @return {@code true} if the block belongs to the area
+     */
+    private boolean canToolMine(@Nonnull Material toolType, @Nonnull Block block) {
+        final @Nonnull Material blockType = block.getType();
+        if (!PowerUtils.validateHammer(toolType, blockType) && !PowerUtils.validateExcavator(toolType, blockType)) {
+            return false;
+        }
+        return Reference.CUSTOM_BLOCK_LIST || !(block.getState() instanceof TileState);
     }
 
     /**
@@ -347,10 +434,7 @@ public class BlockBreakListener implements Listener {
         final @Nonnull Material blockMat = Objects.requireNonNull(block.getType(), "blockMat");
         final @Nonnull Material toolMat = Objects.requireNonNull(handItem.getType(), "toolMat");
 
-        final boolean useHammer = PowerUtils.validateHammer(toolMat, blockMat);
-        final boolean useExcavator = !useHammer && PowerUtils.validateExcavator(toolMat, blockMat);
-
-        if (!(useHammer || useExcavator)) {
+        if (!canToolMine(toolMat, block)) {
             return new BreakResult(false, 0);
         }
 
@@ -451,7 +535,7 @@ public class BlockBreakListener implements Listener {
             return true;
         }
 
-        if (player.isSneaking()) {
+        if (PowerUtils.isAreaActionBlocked(plugin, player)) {
             return true;
         }
 

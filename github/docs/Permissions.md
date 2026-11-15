@@ -4,6 +4,7 @@
 |--------------|----------------|------------|
 | `powermining.all` | Grants all permissions | `op` |
 | `powermining.give` | Allows receiving a PowerTool via `/powermining give <tool>` | `op` |
+| `powermining.toggle` | Allows turning area mining on or off via `/powermining toggle` | `true` |
 
 
 ## Crafting Permissions
@@ -13,6 +14,7 @@
 | `powermining.craft.hammer.all` | Allows crafting all Hammers | `op` |
 | `powermining.craft.excavator.all` | Allows crafting all Excavators | `op` |
 | `powermining.craft.plow.all` | Allows crafting all Plows | `op` |
+| `powermining.craft.sickle.all` | Allows crafting all Sickles | `op` |
 
 ### Hammer Crafting
 | **Permission** | **Description** | **Default** |
@@ -23,6 +25,7 @@
 | `powermining.craft.hammer.golden` | Allows crafting the Golden Hammer | `false` |
 | `powermining.craft.hammer.diamond` | Allows crafting the Diamond Hammer | `false` |
 | `powermining.craft.hammer.netherite` | Allows crafting the Netherite Hammer | `false` |
+| `powermining.craft.hammer.copper` | Allows crafting the Copper Hammer | `false` |
 
 ### Excavator Crafting
 | **Permission** | **Description** | **Default** |
@@ -33,6 +36,7 @@
 | `powermining.craft.excavator.golden` | Allows crafting the Golden Excavator | `false` |
 | `powermining.craft.excavator.diamond` | Allows crafting the Diamond Excavator | `false` |
 | `powermining.craft.excavator.netherite` | Allows crafting the Netherite Excavator | `false` |
+| `powermining.craft.excavator.copper` | Allows crafting the Copper Excavator | `false` |
 
 ### Plow Crafting
 | **Permission** | **Description** | **Default** |
@@ -43,6 +47,18 @@
 | `powermining.craft.plow.golden` | Allows crafting the Golden Plow | `false` |
 | `powermining.craft.plow.diamond` | Allows crafting the Diamond Plow | `false` |
 | `powermining.craft.plow.netherite` | Allows crafting the Netherite Plow | `false` |
+| `powermining.craft.plow.copper` | Allows crafting the Copper Plow | `false` |
+
+### Sickle Crafting
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.craft.sickle.wooden` | Allows crafting the Wooden Sickle | `false` |
+| `powermining.craft.sickle.stone` | Allows crafting the Stone Sickle | `false` |
+| `powermining.craft.sickle.iron` | Allows crafting the Iron Sickle | `false` |
+| `powermining.craft.sickle.golden` | Allows crafting the Golden Sickle | `false` |
+| `powermining.craft.sickle.diamond` | Allows crafting the Diamond Sickle | `false` |
+| `powermining.craft.sickle.netherite` | Allows crafting the Netherite Sickle | `false` |
+| `powermining.craft.sickle.copper` | Allows crafting the Copper Sickle | `false` |
 
 ## Usage Permissions
 | **Permission** | **Description** | **Default** |
@@ -52,6 +68,7 @@
 | `powermining.use.hammer.all` | Allows using all Hammers | `op` |
 | `powermining.use.excavator.all` | Allows using all Excavators | `op` |
 | `powermining.use.plow.all` | Allows using all Plows | `op` |
+| `powermining.use.sickle.all` | Allows using all Sickles | `op` |
 
 ### Hammer Usage
 | **Permission** | **Description** | **Default** |
@@ -62,6 +79,7 @@
 | `powermining.use.hammer.golden` | Allows using the Golden Hammer | `false` |
 | `powermining.use.hammer.diamond` | Allows using the Diamond Hammer | `false` |
 | `powermining.use.hammer.netherite` | Allows using the Netherite Hammer | `false` |
+| `powermining.use.hammer.copper` | Allows using the Copper Hammer | `false` |
 
 ### Excavator Usage
 | **Permission** | **Description** | **Default** |
@@ -72,6 +90,7 @@
 | `powermining.use.excavator.golden` | Allows using the Golden Excavator | `false` |
 | `powermining.use.excavator.diamond` | Allows using the Diamond Excavator | `false` |
 | `powermining.use.excavator.netherite` | Allows using the Netherite Excavator | `false` |
+| `powermining.use.excavator.copper` | Allows using the Copper Excavator | `false` |
 
 ### Plow Usage
 | **Permission** | **Description** | **Default** |
@@ -82,6 +101,18 @@
 | `powermining.use.plow.golden` | Allows using the Golden Plow | `false` |
 | `powermining.use.plow.diamond` | Allows using the Diamond Plow | `false` |
 | `powermining.use.plow.netherite` | Allows using the Netherite Plow | `false` |
+| `powermining.use.plow.copper` | Allows using the Copper Plow | `false` |
+
+### Sickle Usage
+| **Permission** | **Description** | **Default** |
+|--------------|----------------|------------|
+| `powermining.use.sickle.wooden` | Allows using the Wooden Sickle | `false` |
+| `powermining.use.sickle.stone` | Allows using the Stone Sickle | `false` |
+| `powermining.use.sickle.iron` | Allows using the Iron Sickle | `false` |
+| `powermining.use.sickle.golden` | Allows using the Golden Sickle | `false` |
+| `powermining.use.sickle.diamond` | Allows using the Diamond Sickle | `false` |
+| `powermining.use.sickle.netherite` | Allows using the Netherite Sickle | `false` |
+| `powermining.use.sickle.copper` | Allows using the Copper Sickle | `false` |
 
 ## Enchantment Permissions
 | **Permission** | **Description** | **Default** |
@@ -90,3 +121,4 @@
 | `powermining.enchant.hammer.all` | Allows enchanting all Hammers | `op` |
 | `powermining.enchant.excavator.all` | Allows enchanting all Excavators | `op` |
 | `powermining.enchant.plow.all` | Allows enchanting all Plows | `op` |
+| `powermining.enchant.sickle.all` | Allows enchanting all Sickles | `op` |

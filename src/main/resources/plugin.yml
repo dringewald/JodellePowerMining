@@ -1,10 +1,11 @@
 name: JodellePowerMining
 main: jodelle.powermining.PowerMining
-version: 1.6
+version: 1.7
 authors: [Holt, mgl23606, bloodyshade]
+website: https://github.com/dringewald/JodellePowerMining
 description: Implements Hammer, Excavator and Plow tools for faster mining, version updated from BloodyShade and mgl23606 (JodelleLover).
 api-version: "26.3"
-softdepend: [worldguard, Jobs]
+softdepend: [worldguard, Jobs, ItemsAdder, ResourcePackManager]
 
 commands:
     powermining:
@@ -20,6 +21,7 @@ permissions:
             powermining.admin: true
             powermining.version: true
             powermining.give: true
+            powermining.toggle: true
             powermining.craft.all: true
             powermining.use.all: true
             powermining.enchant.all: true
@@ -31,6 +33,10 @@ permissions:
     powermining.give:
         description: Allows player to receive a Powertool of his choice
         default: op
+
+    powermining.toggle:
+        description: Allows players to turn area mining on or off for themselves
+        default: true
 
     powermining.admin:
         description: Grants access to all admin commands
@@ -64,6 +70,7 @@ permissions:
             powermining.craft.hammer.all: true
             powermining.craft.excavator.all: true
             powermining.craft.plow.all: true
+            powermining.craft.sickle.all: true
 
     powermining.craft.hammer.all:
         description: Allows players to craft all hammers
@@ -75,6 +82,7 @@ permissions:
             powermining.craft.hammer.golden: true
             powermining.craft.hammer.diamond: true
             powermining.craft.hammer.netherite: true
+            powermining.craft.hammer.copper: true
 
     powermining.craft.hammer.wooden:
         description: Allows players to craft the Wooden Hammer
@@ -94,6 +102,9 @@ permissions:
     powermining.craft.hammer.netherite:
         description: Allows players to craft the Netherite Hammer
         default: false
+    powermining.craft.hammer.copper:
+        description: Allows players to craft the Copper Hammer
+        default: false
 
     powermining.craft.plow.all:
         description: Allows players to craft all Plows
@@ -105,6 +116,7 @@ permissions:
             powermining.craft.plow.golden: true
             powermining.craft.plow.diamond: true
             powermining.craft.plow.netherite: true
+            powermining.craft.plow.copper: true
 
     powermining.craft.plow.wooden:
         description: Allows players to craft the Wooden Plow
@@ -124,6 +136,43 @@ permissions:
     powermining.craft.plow.netherite:
         description: Allows players to craft the Netherite Plow
         default: false
+    powermining.craft.plow.copper:
+        description: Allows players to craft the Copper Plow
+        default: false
+
+    powermining.craft.sickle.all:
+        description: Allows players to craft all Sickles
+        default: op
+        children:
+            powermining.craft.sickle.wooden: true
+            powermining.craft.sickle.stone: true
+            powermining.craft.sickle.iron: true
+            powermining.craft.sickle.golden: true
+            powermining.craft.sickle.diamond: true
+            powermining.craft.sickle.netherite: true
+            powermining.craft.sickle.copper: true
+
+    powermining.craft.sickle.wooden:
+        description: Allows players to craft the Wooden Sickle
+        default: false
+    powermining.craft.sickle.stone:
+        description: Allows players to craft the Stone Sickle
+        default: false
+    powermining.craft.sickle.iron:
+        description: Allows players to craft the Iron Sickle
+        default: false
+    powermining.craft.sickle.golden:
+        description: Allows players to craft the Golden Sickle
+        default: false
+    powermining.craft.sickle.diamond:
+        description: Allows players to craft the Diamond Sickle
+        default: false
+    powermining.craft.sickle.netherite:
+        description: Allows players to craft the Netherite Sickle
+        default: false
+    powermining.craft.sickle.copper:
+        description: Allows players to craft the Copper Sickle
+        default: false
 
     powermining.craft.excavator.all:
         description: Allows players to craft all Excavators
@@ -135,6 +184,7 @@ permissions:
             powermining.craft.excavator.golden: true
             powermining.craft.excavator.diamond: true
             powermining.craft.excavator.netherite: true
+            powermining.craft.excavator.copper: true
 
     powermining.craft.excavator.wooden:
         description: Allows players to craft the Wooden Excavator
@@ -154,6 +204,9 @@ permissions:
     powermining.craft.excavator.netherite:
         description: Allows players to craft the Netherite Excavator
         default: false
+    powermining.craft.excavator.copper:
+        description: Allows players to craft the Copper Excavator
+        default: false
 
     powermining.use.all:
         description: Allows players to use all Hammers and Excavators
@@ -162,6 +215,7 @@ permissions:
             powermining.use.hammer.all: true
             powermining.use.excavator.all: true
             powermining.use.plow.all: true
+            powermining.use.sickle.all: true
             powermining.use.commands: true
 
     powermining.use.commands:
@@ -178,6 +232,7 @@ permissions:
             powermining.use.hammer.golden: true
             powermining.use.hammer.diamond: true
             powermining.use.hammer.netherite: true
+            powermining.use.hammer.copper: true
 
     powermining.use.hammer.wooden:
         description: Allows players to use the Wooden Hammer
@@ -197,6 +252,9 @@ permissions:
     powermining.use.hammer.netherite:
         description: Allows players to use the Netherite Hammer
         default: false
+    powermining.use.hammer.copper:
+        description: Allows players to use the Copper Hammer
+        default: false
 
     powermining.use.plow.all:
         description: Allows players to use all Plows
@@ -208,6 +266,7 @@ permissions:
             powermining.use.plow.golden: true
             powermining.use.plow.diamond: true
             powermining.use.plow.netherite: true
+            powermining.use.plow.copper: true
 
     powermining.use.plow.wooden:
         description: Allows players to use the Wooden Plow
@@ -227,6 +286,43 @@ permissions:
     powermining.use.plow.netherite:
         description: Allows players to use the Netherite Plow
         default: false
+    powermining.use.plow.copper:
+        description: Allows players to use the Copper Plow
+        default: false
+
+    powermining.use.sickle.all:
+        description: Allows players to use all Sickles
+        default: op
+        children:
+            powermining.use.sickle.wooden: true
+            powermining.use.sickle.stone: true
+            powermining.use.sickle.iron: true
+            powermining.use.sickle.golden: true
+            powermining.use.sickle.diamond: true
+            powermining.use.sickle.netherite: true
+            powermining.use.sickle.copper: true
+
+    powermining.use.sickle.wooden:
+        description: Allows players to use the Wooden Sickle
+        default: false
+    powermining.use.sickle.stone:
+        description: Allows players to use the Stone Sickle
+        default: false
+    powermining.use.sickle.iron:
+        description: Allows players to use the Iron Sickle
+        default: false
+    powermining.use.sickle.golden:
+        description: Allows players to use the Golden Sickle
+        default: false
+    powermining.use.sickle.diamond:
+        description: Allows players to use the Diamond Sickle
+        default: false
+    powermining.use.sickle.netherite:
+        description: Allows players to use the Netherite Sickle
+        default: false
+    powermining.use.sickle.copper:
+        description: Allows players to use the Copper Sickle
+        default: false
 
     powermining.use.excavator.all:
         description: Allows players to use all excavators
@@ -238,6 +334,7 @@ permissions:
             powermining.use.excavator.golden: true
             powermining.use.excavator.diamond: true
             powermining.use.excavator.netherite: true
+            powermining.use.excavator.copper: true
 
     powermining.use.excavator.wooden:
         description: Allows players to use the Wooden Excavator
@@ -257,6 +354,9 @@ permissions:
     powermining.use.excavator.netherite:
         description: Allows players to use the Netherite Excavator
         default: false
+    powermining.use.excavator.copper:
+        description: Allows players to use the Copper Excavator
+        default: false
 
     powermining.enchant.all:
         description: Allows players to enchant all Hammers and Excavators
@@ -265,6 +365,7 @@ permissions:
             powermining.enchant.hammer.all: true
             powermining.enchant.excavator.all: true
             powermining.enchant.plow.all: true
+            powermining.enchant.sickle.all: true
 
     powermining.enchant.hammer.all:
         description: Allows players to enchant all hammers
@@ -276,6 +377,7 @@ permissions:
             powermining.enchant.hammer.golden: true
             powermining.enchant.hammer.diamond: true
             powermining.enchant.hammer.netherite: true
+            powermining.enchant.hammer.copper: true
 
     powermining.enchant.hammer.wooden:
         description: Allows players to enchant the Wooden Hammer
@@ -295,6 +397,9 @@ permissions:
     powermining.enchant.hammer.netherite:
         description: Allows players to enchant the Netherite Hammer
         default: false
+    powermining.enchant.hammer.copper:
+        description: Allows players to enchant the Copper Hammer
+        default: false
 
     powermining.enchant.plow.all:
         description: Allows players to enchant all Plows
@@ -306,6 +411,7 @@ permissions:
             powermining.enchant.plow.golden: true
             powermining.enchant.plow.diamond: true
             powermining.enchant.plow.netherite: true
+            powermining.enchant.plow.copper: true
 
     powermining.enchant.plow.wooden:
             description: Allows players to enchant the Wooden Plow
@@ -325,6 +431,43 @@ permissions:
     powermining.enchant.plow.netherite:
             description: Allows players to enchant the Netherite Plow
             default: false
+    powermining.enchant.plow.copper:
+            description: Allows players to enchant the Copper Plow
+            default: false
+
+    powermining.enchant.sickle.all:
+        description: Allows players to enchant all Sickles
+        default: op
+        children:
+            powermining.enchant.sickle.wooden: true
+            powermining.enchant.sickle.stone: true
+            powermining.enchant.sickle.iron: true
+            powermining.enchant.sickle.golden: true
+            powermining.enchant.sickle.diamond: true
+            powermining.enchant.sickle.netherite: true
+            powermining.enchant.sickle.copper: true
+
+    powermining.enchant.sickle.wooden:
+            description: Allows players to enchant the Wooden Sickle
+            default: false
+    powermining.enchant.sickle.stone:
+            description: Allows players to enchant the Stone Sickle
+            default: false
+    powermining.enchant.sickle.iron:
+            description: Allows players to enchant the Iron Sickle
+            default: false
+    powermining.enchant.sickle.golden:
+            description: Allows players to enchant the Golden Sickle
+            default: false
+    powermining.enchant.sickle.diamond:
+            description: Allows players to enchant the Diamond Sickle
+            default: false
+    powermining.enchant.sickle.netherite:
+            description: Allows players to enchant the Netherite Sickle
+            default: false
+    powermining.enchant.sickle.copper:
+            description: Allows players to enchant the Copper Sickle
+            default: false
 
     powermining.enchant.excavator.all:
         description: Allows players to enchant all excavators
@@ -336,6 +479,7 @@ permissions:
             powermining.enchant.excavator.golden: true
             powermining.enchant.excavator.diamond: true
             powermining.enchant.excavator.netherite: true
+            powermining.enchant.excavator.copper: true
 
     powermining.enchant.excavator.wooden:
         description: Allows players to enchant the Wooden Excavator
@@ -354,4 +498,7 @@ permissions:
         default: false
     powermining.enchant.excavator.netherite:
         description: Allows players to enchant the Netherite Excavator
+        default: false
+    powermining.enchant.excavator.copper:
+        description: Allows players to enchant the Copper Excavator
         default: false

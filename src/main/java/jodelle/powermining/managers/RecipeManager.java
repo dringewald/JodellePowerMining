@@ -227,6 +227,7 @@ public class RecipeManager {
         registerFallbackRecipes(Reference.HAMMERS, Reference.HAMMER_CRAFTING_RECIPES);
         registerFallbackRecipes(Reference.EXCAVATORS, Reference.EXCAVATOR_CRAFTING_RECIPES);
         registerFallbackRecipes(Reference.PLOWS, Reference.PLOW_CRAFTING_RECIPES);
+        registerFallbackRecipes(Reference.SICKLES, Reference.SICKLE_CRAFTING_RECIPES);
     }
 
     /**
@@ -357,6 +358,15 @@ public class RecipeManager {
      * @return The crafted {@link ItemStack}, or {@code null} if the tool name
      *         cannot be resolved to a valid item.
      */
+    /**
+     * Returns the keys of the PowerTool recipes registered right now.
+     *
+     * @return an unmodifiable view of the recipe keys
+     */
+    public @Nonnull List<NamespacedKey> getRegisteredRecipes() {
+        return java.util.Collections.unmodifiableList(registeredRecipes);
+    }
+
     private @Nullable ItemStack getToolItem(final @Nonnull String toolName) {
         java.util.Objects.requireNonNull(toolName, "toolName");
 

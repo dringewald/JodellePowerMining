@@ -66,6 +66,11 @@ public class Reference {
     public static HashMap<String, ItemStack[]> PLOW_CRAFTING_RECIPES = new HashMap<>();
 
     /**
+     * Fallback crafting recipes for sickles.
+     */
+    public static HashMap<String, ItemStack[]> SICKLE_CRAFTING_RECIPES = new HashMap<>();
+
+    /**
      * Defines which materials are minable with specific tools.
      */
     public static HashMap<Material, ArrayList<Material>> MINABLE = new HashMap<>();
@@ -76,17 +81,26 @@ public class Reference {
     public static ArrayList<Material> DIGGABLE = new ArrayList<>();
 
     /**
-     * List of materials that can be tilled using hoes.
+     * List of materials a hoe can till, as in vanilla. Coarse and rooted dirt turn
+     * into dirt, the others into farmland.
      */
     public static ArrayList<Material> TILLABLE = new ArrayList<>(Arrays.asList(
             Material.GRASS_BLOCK,
-            Material.DIRT));
+            Material.DIRT,
+            Material.DIRT_PATH,
+            Material.COARSE_DIRT,
+            Material.ROOTED_DIRT));
 
     /**
-     * List of materials that can be converted into paths.
+     * List of materials a shovel can turn into a path, as in vanilla.
      */
-    public static ArrayList<Material> PATHABLE = new ArrayList<>(Collections.singletonList(
-            Material.GRASS_BLOCK));
+    public static ArrayList<Material> PATHABLE = new ArrayList<>(Arrays.asList(
+            Material.GRASS_BLOCK,
+            Material.DIRT,
+            Material.PODZOL,
+            Material.COARSE_DIRT,
+            Material.MYCELIUM,
+            Material.ROOTED_DIRT));
 
     /**
      * List of pickaxe materials used in hammer crafting.
@@ -97,7 +111,8 @@ public class Reference {
             Material.IRON_PICKAXE,
             Material.GOLDEN_PICKAXE,
             Material.DIAMOND_PICKAXE,
-            Material.NETHERITE_PICKAXE));
+            Material.NETHERITE_PICKAXE,
+            Material.COPPER_PICKAXE));
 
     /**
      * List of shovel materials used in excavator crafting.
@@ -108,7 +123,8 @@ public class Reference {
             Material.IRON_SHOVEL,
             Material.GOLDEN_SHOVEL,
             Material.DIAMOND_SHOVEL,
-            Material.NETHERITE_SHOVEL));
+            Material.NETHERITE_SHOVEL,
+            Material.COPPER_SHOVEL));
 
     /**
      * List of spade materials (alias for shovels).
@@ -119,7 +135,8 @@ public class Reference {
             Material.IRON_SHOVEL,
             Material.GOLDEN_SHOVEL,
             Material.DIAMOND_SHOVEL,
-            Material.NETHERITE_SHOVEL));
+            Material.NETHERITE_SHOVEL,
+            Material.COPPER_SHOVEL));
 
     /**
      * List of hoe materials used in plow crafting.
@@ -130,7 +147,20 @@ public class Reference {
             Material.IRON_HOE,
             Material.GOLDEN_HOE,
             Material.DIAMOND_HOE,
-            Material.NETHERITE_HOE));
+            Material.NETHERITE_HOE,
+            Material.COPPER_HOE));
+
+    /**
+     * List of sword materials used in sickle crafting.
+     */
+    public static final @Nonnull ArrayList<Material> SWORDS = new ArrayList<>(Arrays.asList(
+            Material.WOODEN_SWORD,
+            Material.STONE_SWORD,
+            Material.IRON_SWORD,
+            Material.GOLDEN_SWORD,
+            Material.DIAMOND_SWORD,
+            Material.NETHERITE_SWORD,
+            Material.COPPER_SWORD));
 
     /**
      * Default tool radius for special mining effects.
@@ -143,24 +173,39 @@ public class Reference {
     public static Integer DEPTH = 1;
 
     /**
+     * Whether the hand written "Minable" and "Diggable" lists of the config are
+     * used ({@code customBlockList: true}). Otherwise the vanilla block tags
+     * decide which blocks a PowerTool can break.
+     */
+    public static boolean CUSTOM_BLOCK_LIST = false;
+
+    /**
      * List of hammer tool names.
      */
     public static final @Nonnull ArrayList<String> HAMMERS = new ArrayList<>(Arrays.asList(
             "WOODEN_HAMMER", "STONE_HAMMER", "IRON_HAMMER", "GOLDEN_HAMMER", "DIAMOND_HAMMER",
-            "NETHERITE_HAMMER"));
+            "NETHERITE_HAMMER", "COPPER_HAMMER"));
 
     /**
      * List of excavator tool names.
      */
     public static final @Nonnull ArrayList<String> EXCAVATORS = new ArrayList<>(Arrays.asList(
             "WOODEN_EXCAVATOR", "STONE_EXCAVATOR", "IRON_EXCAVATOR", "GOLDEN_EXCAVATOR",
-            "DIAMOND_EXCAVATOR", "NETHERITE_EXCAVATOR"));
+            "DIAMOND_EXCAVATOR", "NETHERITE_EXCAVATOR", "COPPER_EXCAVATOR"));
 
     /**
      * List of plow tool names.
      */
     public static final @Nonnull ArrayList<String> PLOWS = new ArrayList<>(Arrays.asList(
-            "WOODEN_PLOW", "STONE_PLOW", "IRON_PLOW", "GOLDEN_PLOW", "DIAMOND_PLOW", "NETHERITE_PLOW"));
+            "WOODEN_PLOW", "STONE_PLOW", "IRON_PLOW", "GOLDEN_PLOW", "DIAMOND_PLOW", "NETHERITE_PLOW",
+            "COPPER_PLOW"));
+
+    /**
+     * List of sickle tool names.
+     */
+    public static final @Nonnull ArrayList<String> SICKLES = new ArrayList<>(Arrays.asList(
+            "WOODEN_SICKLE", "STONE_SICKLE", "IRON_SICKLE", "GOLDEN_SICKLE", "DIAMOND_SICKLE", "NETHERITE_SICKLE",
+            "COPPER_SICKLE"));
 
     /**
      * Initializes crafting recipes from configuration and combines them into
@@ -174,6 +219,7 @@ public class Reference {
         CRAFTING_RECIPES.putAll(HAMMER_CRAFTING_RECIPES);
         CRAFTING_RECIPES.putAll(EXCAVATOR_CRAFTING_RECIPES);
         CRAFTING_RECIPES.putAll(PLOW_CRAFTING_RECIPES);
+        CRAFTING_RECIPES.putAll(SICKLE_CRAFTING_RECIPES);
     }
 
     /**
@@ -192,6 +238,7 @@ public class Reference {
      * <li>{@code GOLDEN_*} → {@code GOLD_INGOT}</li>
      * <li>{@code DIAMOND_*} → {@code DIAMOND}</li>
      * <li>{@code NETHERITE_*}→ {@code NETHERITE_INGOT}</li>
+     * <li>{@code COPPER_*} → {@code COPPER_INGOT}</li>
      * </ul>
      *
      * <p>
@@ -213,7 +260,7 @@ public class Reference {
      *                                  If the tool name does not start with a
      *                                  recognized tier prefix.
      */
-    private static @Nonnull String getTierIngredient(final @Nonnull String toolName) {
+    public static @Nonnull String getTierIngredient(final @Nonnull String toolName) {
         // English comments as requested
         if (toolName.startsWith("WOODEN_")) {
             return "OAK_LOG";
@@ -232,6 +279,9 @@ public class Reference {
         }
         if (toolName.startsWith("NETHERITE_")) {
             return "NETHERITE_INGOT";
+        }
+        if (toolName.startsWith("COPPER_")) {
+            return "COPPER_INGOT";
         }
         // English comments as requested
         throw new IllegalArgumentException("Unknown tool tier for: " + toolName);
@@ -305,6 +355,18 @@ public class Reference {
             PLOW_CRAFTING_RECIPES.put(plow, createRecipe(
                     "EMPTY", headMaterial, "EMPTY",
                     headMaterial, hoeType, headMaterial,
+                    "EMPTY", headMaterial, "EMPTY"));
+        });
+
+        // Sickle recipes
+        SICKLES.forEach(sickleName -> {
+            final @Nonnull String sickle = Objects.requireNonNull(sickleName, "sickle");
+            final String headMaterial = getTierIngredient(sickle);
+            final String swordType = sickle.replace("_SICKLE", "_SWORD");
+
+            SICKLE_CRAFTING_RECIPES.put(sickle, createRecipe(
+                    "EMPTY", headMaterial, "EMPTY",
+                    headMaterial, swordType, headMaterial,
                     "EMPTY", headMaterial, "EMPTY"));
         });
     }

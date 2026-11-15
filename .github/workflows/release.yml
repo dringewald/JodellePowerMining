@@ -1,0 +1,56 @@
+name: Release Plugin
+
+# Pushing a tag like "1.7" builds the plugin and publishes it as a GitHub release,
+# which the update check of the plugin reads.
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9.12-eclipse-temurin-25-noble
+      options: -e MAVEN_OPTS=-Dmaven.repo.local=.m2/repository
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Maven Repository Directory
+        run: mkdir -p .m2/repository
+
+      - name: Check that the tag matches the plugin version
+        run: |
+          version=$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the version $version in pom.xml"
+            exit 1
+          fi
+
+      - name: Build with Maven
+        run: mvn -B clean package
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jar
+          path: target/JodellePowerMining-${{ github.ref_name }}.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download jar
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-jar
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" "JodellePowerMining-$GITHUB_REF_NAME.jar"
+          --repo "$GITHUB_REPOSITORY" --title "JodellePowerMining $GITHUB_REF_NAME" --generate-notes --verify-tag

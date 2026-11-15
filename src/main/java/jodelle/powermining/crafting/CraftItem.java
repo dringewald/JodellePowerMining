@@ -2,8 +2,15 @@ package jodelle.powermining.crafting;
 
 import jodelle.powermining.PowerMining;
 import jodelle.powermining.lib.DebuggingMessages;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -111,7 +118,43 @@ public class CraftItem {
         final NamespacedKey isPowerTool = new NamespacedKey(plugin, "isPowerTool");
         powerToolMeta.getPersistentDataContainer().set(isPowerTool, PersistentDataType.STRING, toolKey);
 
+        // A resource pack can give every PowerTool its own texture through this model
+        if (plugin.getConfig().getBoolean("customItemModels", false)) {
+            powerToolMeta.setItemModel(new NamespacedKey(plugin, toolKey));
+        } else {
+            powerToolMeta.setItemModel(null);
+        }
+        applyMiningSpeed(powerTool.getType(), powerToolMeta);
         powerTool.setItemMeta(powerToolMeta);
+    }
+
+    /**
+     * Applies the {@code miningSpeed} factor of the config as an attribute
+     * modifier. Any modifier on an item replaces the default ones of its type,
+     * so attack damage and speed of the vanilla tool are copied along.
+     *
+     * @param toolType the vanilla tool the PowerTool is based on
+     * @param meta     the meta to change
+     */
+    private void applyMiningSpeed(@Nonnull final Material toolType, @Nonnull final ItemMeta meta) {
+        final NamespacedKey speedKey = new NamespacedKey(plugin, "mining_speed");
+        final boolean hasOwnModifier = meta.hasAttributeModifiers()
+                && meta.getAttributeModifiers(Attribute.BLOCK_BREAK_SPEED) != null
+                && meta.getAttributeModifiers(Attribute.BLOCK_BREAK_SPEED).stream()
+                        .anyMatch(modifier -> speedKey.equals(modifier.getKey()));
+        // Rebuilt from scratch, because a smithing upgrade keeps the copied modifiers of the diamond tool
+        if (hasOwnModifier) {
+            meta.setAttributeModifiers(null);
+        }
+        final double speed = plugin.getConfig().getDouble("miningSpeed", 1.0);
+        if (speed == 1.0 || speed <= 0) {
+            return;
+        }
+        final Multimap<Attribute, AttributeModifier> modifiers = LinkedHashMultimap
+                .create(toolType.getDefaultAttributeModifiers(EquipmentSlot.HAND));
+        modifiers.put(Attribute.BLOCK_BREAK_SPEED, new AttributeModifier(speedKey, speed - 1.0,
+                AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.MAINHAND));
+        meta.setAttributeModifiers(modifiers);
     }
 
     /**

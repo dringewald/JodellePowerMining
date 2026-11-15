@@ -211,6 +211,8 @@ public class CraftItemListener implements Listener {
             expectedRecipeRaw = Reference.EXCAVATOR_CRAFTING_RECIPES.get(powerToolName);
         } else if (Reference.PLOWS.contains(powerToolName)) {
             expectedRecipeRaw = Reference.PLOW_CRAFTING_RECIPES.get(powerToolName);
+        } else if (Reference.SICKLES.contains(powerToolName)) {
+            expectedRecipeRaw = Reference.SICKLE_CRAFTING_RECIPES.get(powerToolName);
         } else {
             expectedRecipeRaw = null;
         }

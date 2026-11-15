@@ -87,6 +87,7 @@ public class PowerMiningTabCompleter implements TabCompleter {
         if (args.length == 1) {
             // Main command suggestions
             completions.add("give");
+            completions.add("toggle");
             completions.add("admin");
             completions.add("version");
             completions.add("help");
@@ -102,6 +103,7 @@ public class PowerMiningTabCompleter implements TabCompleter {
                 completions.addAll(Reference.EXCAVATORS);
                 completions.addAll(Reference.HAMMERS);
                 completions.addAll(Reference.PLOWS);
+                completions.addAll(Reference.SICKLES);
             }
         } else if (args.length == 3 && "admin".equalsIgnoreCase(args[0]) && "language".equalsIgnoreCase(args[1])) {
             // Suggest preloaded languages, but allow user input

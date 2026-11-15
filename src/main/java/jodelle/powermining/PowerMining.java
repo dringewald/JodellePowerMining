@@ -1,5 +1,8 @@
 package jodelle.powermining;
 
+import jodelle.powermining.listeners.SickleListener;
+import jodelle.powermining.listeners.ToolExtrasListener;
+
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 import jodelle.powermining.commands.PowerMiningCommand;
@@ -28,6 +31,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
+
+import jodelle.powermining.integrations.TextureInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -218,6 +223,9 @@ public final class PowerMining extends JavaPlugin {
         handlerInventoryClick.init(this);
         handlerClickPlayer.init(this);
         handlerAnvilRepair.init(this);
+        new ToolExtrasListener(this);
+        new SickleListener(this);
+        TextureInstaller.install(this, getFile());
 
         this.registerCommand();
 
@@ -310,6 +318,7 @@ public final class PowerMining extends JavaPlugin {
         generatePermission(Reference.HAMMERS, Reference.PICKAXES);
         generatePermission(Reference.EXCAVATORS, Reference.SHOVELS);
         generatePermission(Reference.PLOWS, Reference.HOES);
+        generatePermission(Reference.SICKLES, Reference.SWORDS);
 
         debuggingMessages.sendConsoleMessage(String.valueOf(Reference.CRAFT_PERMISSIONS.size()));
 
@@ -361,6 +370,11 @@ public final class PowerMining extends JavaPlugin {
      * </p>
      */
     public void processConfig() {
+        // Start from empty lists, so blocks removed from the config are gone after a reload
+        Reference.MINABLE.clear();
+        Reference.DIGGABLE.clear();
+        Reference.CUSTOM_BLOCK_LIST = getConfig().getBoolean("customBlockList", false);
+
         try {
             for (Object x : (ArrayList<?>) getConfig().getList("Minable")) {
                 @SuppressWarnings("unchecked")

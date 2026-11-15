@@ -1,6 +1,7 @@
 package jodelle.powermining.managers;
 
 import jodelle.powermining.PowerMining;
+import jodelle.powermining.lib.Reference;
 import org.bukkit.configuration.file.FileConfiguration;
 import java.util.*;
 
@@ -23,7 +24,7 @@ public class ConfigMigrator {
     /**
      * The current version of the configuration format.
      */
-    private static final String CURRENT_VERSION = "1.2"; // Updated version for migration
+    private static final String CURRENT_VERSION = "1.3";
 
     /**
      * Constructs a {@code ConfigMigrator} instance.
@@ -59,8 +60,8 @@ public class ConfigMigrator {
             }
         }
 
-        // If config is already updated (>= 1.2), stop migration
-        if (configVersion >= 1.2) {
+        // If config is already updated, stop migration
+        if (configVersion >= 1.3) {
             plugin.getLogger().info("Config is already up-to-date (v" + configVersion + "). No migration needed.");
             return;
         }
@@ -145,7 +146,8 @@ public class ConfigMigrator {
                     "NETHERITE_HAMMER",
                     "WOODEN_EXCAVATOR", "STONE_EXCAVATOR", "IRON_EXCAVATOR", "GOLDEN_EXCAVATOR", "DIAMOND_EXCAVATOR",
                     "NETHERITE_EXCAVATOR",
-                    "WOODEN_PLOW", "STONE_PLOW", "IRON_PLOW", "GOLDEN_PLOW", "DIAMOND_PLOW", "NETHERITE_PLOW");
+                    "WOODEN_PLOW", "STONE_PLOW", "IRON_PLOW", "GOLDEN_PLOW", "DIAMOND_PLOW", "NETHERITE_PLOW",
+                    "COPPER_HAMMER", "COPPER_EXCAVATOR", "COPPER_PLOW");
 
             Map<String, Map<String, Object>> migratedRecipes = new LinkedHashMap<>();
 
@@ -215,15 +217,100 @@ public class ConfigMigrator {
             } else {
                 plugin.getLogger().info("xp-drops section already exists, skipping creation.");
             }
-
-            // Update the configuration version to 1.2
-            config.set("configVersion", CURRENT_VERSION);
-            plugin.getLogger().info("Config version updated to " + CURRENT_VERSION + ".");
         }
+
+        if (configVersion < 1.3) {
+            // STEP 7: New options with their defaults
+            final Map<String, Object> newOptions = new LinkedHashMap<>();
+            newOptions.put("legacyMining", false);
+            newOptions.put("customBlockList", false);
+            newOptions.put("disabledWorlds", new ArrayList<String>());
+            newOptions.put("unlockRecipes", true);
+            newOptions.put("autoPickup", false);
+            newOptions.put("miningSpeed", 1.0);
+            newOptions.put("netheriteSmithing", true);
+            newOptions.put("customItemModels", false);
+            newOptions.put("installTextures", true);
+            for (Map.Entry<String, Object> option : newOptions.entrySet()) {
+                // contains(path, true) ignores the defaults of the bundled config, so the keys land in the file
+                if (!config.contains(option.getKey(), true)) {
+                    config.set(option.getKey(), option.getValue());
+                }
+            }
+            addNewRecipes(config);
+            addCopperPickaxeToMinable(config);
+        }
+
+        config.set("configVersion", CURRENT_VERSION);
+        plugin.getLogger().info("Config version updated to " + CURRENT_VERSION + ".");
 
         // STEP 6: Save Config (Now That Everything is Set)
         plugin.saveConfig();
         plugin.reloadConfig(); // Reload config, so recipes are correctly loaded
         plugin.getLogger().info("Config migration complete.");
+    }
+
+    /**
+     * Adds the recipes of the copper tools and the sickles to a config that
+     * defines its own recipes. Without a "recipes" section the built in defaults
+     * already contain them.
+     *
+     * @param config the configuration to update
+     */
+    private void addNewRecipes(FileConfiguration config) {
+        if (!config.contains("recipes", true)) {
+            return;
+        }
+        final List<String> newTools = new ArrayList<>(List.of("COPPER_HAMMER", "COPPER_EXCAVATOR", "COPPER_PLOW"));
+        newTools.addAll(Reference.SICKLES);
+        for (String toolName : newTools) {
+            final String path = "recipes." + toolName;
+            if (config.contains(path, true)) {
+                continue;
+            }
+            config.set(path + ".recipe-ingredients.I", Reference.getTierIngredient(toolName));
+            config.set(path + ".recipe-ingredients.T", vanillaToolOf(toolName));
+            config.set(path + ".recipe-ingredients.E", "EMPTY");
+            config.set(path + ".recipe-shape", Arrays.asList("EIE", "ITI", "EIE"));
+            plugin.getLogger().info("Added recipe for " + toolName + ".");
+        }
+    }
+
+    private static String vanillaToolOf(String toolName) {
+        return toolName.replace("_HAMMER", "_PICKAXE").replace("_EXCAVATOR", "_SHOVEL").replace("_PLOW", "_HOE")
+                .replace("_SICKLE", "_SWORD");
+    }
+
+    /**
+     * Lets the copper pickaxe mine every block of the custom "Minable" list that
+     * a stone pickaxe can mine, as in vanilla.
+     *
+     * @param config the configuration to update
+     */
+    private void addCopperPickaxeToMinable(FileConfiguration config) {
+        final List<?> minable = config.contains("Minable", true) ? config.getList("Minable") : null;
+        if (minable == null) {
+            return;
+        }
+        final List<Object> updated = new ArrayList<>();
+        for (Object entry : minable) {
+            if (!(entry instanceof Map<?, ?> blockEntry)) {
+                updated.add(entry);
+                continue;
+            }
+            final Map<Object, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> block : blockEntry.entrySet()) {
+                Object tools = block.getValue();
+                if (tools instanceof List<?> toolList && toolList.contains("STONE_PICKAXE")
+                        && !toolList.contains("COPPER_PICKAXE")) {
+                    final List<Object> extended = new ArrayList<>(toolList);
+                    extended.add(extended.indexOf("STONE_PICKAXE") + 1, "COPPER_PICKAXE");
+                    tools = extended;
+                }
+                copy.put(block.getKey(), tools);
+            }
+            updated.add(copy);
+        }
+        config.set("Minable", updated);
     }
 }

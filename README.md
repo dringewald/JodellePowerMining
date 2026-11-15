@@ -34,7 +34,8 @@ I really **enjoyed** the plugin, so I decided to **update and improve it further
 ## 🛠️ Features
 ✅ **New Power Tools** – Includes **Hammer, Excavator, and Plow** for enhanced mining & digging.  
 ✅ **3x3 Mining & Digging** – Tools break multiple blocks at once (fully configurable).
-✅ **Customizable Blocks** – Choose which blocks can be mined or dug using PowerTools.  
+✅ **Vanilla Block Lists** - Hammers and excavators break what pickaxes and shovels are meant for, or the blocks you list yourself.  
+✅ **Protection Plugins** - Every extra block fires a normal block break, so Lands, WorldGuard, GriefPrevention, CoreProtect and Jobs apply.  
 ✅ **Configurable Recipes** – Fully customizable crafting recipes for PowerTools
 ✅ **Language support** – Full translation support
 ✅ **Permissions System** – Control **who** can use, craft, and enchant PowerTools.  
@@ -82,14 +83,46 @@ I really **enjoyed** the plugin, so I decided to **update and improve it further
 | `/powermining admin language <language>` | Changes the language file immediately | `powermining.admin.language` |
 | `/powermining admin debug` | Toggles debug mode (Logs extra info, may spam console) | `powermining.admin.debug` |
 
+## 🎨 Textures
+The folder [resourcepack](./resourcepack) holds an own texture for every PowerTool, drawn by
+[generate_textures.py](./resourcepack/generate_textures.py) (no Mojang assets, free to use and to change).
+
+![Textures](./resourcepack/preview.png?raw=true)
+
+The folder [resourcepack-hd](./resourcepack-hd) holds the same tools in 64x64, drawn by
+[generate_hd_textures.py](./resourcepack/generate_hd_textures.py). Use one of the two packs, both use the same item names.
+
+![Textures 64x64](./resourcepack-hd/preview.png?raw=true)
+
+**With ItemsAdder or ResourcePackManager:** the plugin hands the 64x64 textures to them on every start
+(`installTextures: true`). With ItemsAdder run `/iazip` once, ResourcePackManager merges the pack by itself.
+Then go on with step 2.
+
+1. Without these plugins: zip `pack.mcmeta` and `assets` of one pack as server resource pack, or merge the `assets`
+   folder into the pack of another resource pack plugin.
+2. Set `customItemModels: true` in the config and run `/powermining admin reload`.
+3. Newly crafted PowerTools use the textures. Tools crafted before keep the vanilla look.
+
 ## 🔑 Permissions
 You can find all Permissions [here](./github/docs/Permissions.md)
 
 ## **📌 Change Log**
-### **🆕 Latest Updates - November 15, 2026 (v1.6)**
-- **🔄 Updated plugin to Minecraft 26.3** - Built against the Spigot API 26.3. Earlier versions are not supported (should work, but untested).
-- **☕ Java 25** - The plugin now needs Java 25, like Minecraft 26.x itself.
-- **📦 Dependencies** - Updated WorldGuard, bStats and the bundled libraries.
+### **🆕 Latest Updates - November 15, 2026 (v1.7)**
+- **⛏️ Protection plugins** - Extra blocks are now broken as if the player mined them, so Lands, WorldGuard, GriefPrevention, CoreProtect and Jobs see every block. Drops, XP and tool damage follow vanilla. The plow asks protection plugins before tilling. `legacyMining: true` brings back the old way.
+- **📋 Block lists** - Hammers and excavators now use the vanilla block tags, so new blocks work without a config change and the tool tier is checked like in vanilla. Blocks with an inventory are skipped. `customBlockList: true` keeps using the "Minable" and "Diggable" lists.
+- **🟠 Copper tools** - Added the Copper Hammer, Copper Excavator and Copper Plow, with recipes, permissions and translations.
+- **🔀 Toggle** - `/powermining toggle` turns area mining off and on for yourself. The choice survives restarts.
+- **📏 Sizes per tool** - The new `toolSizes` section sets Radius and Depth for single PowerTools, for example 5x5 for the Netherite Hammer.
+- **🌱 Plow and excavator** - Till coarse dirt, rooted dirt and paths, and make paths on dirt, podzol, mycelium, coarse and rooted dirt, as in vanilla. Farmland and paths now need air above.
+- **🌾 Sickle** - New PowerTool made from a sword. Breaking a ripe crop harvests the ripe crops around it and plants them again, paid with one seed from the drops.
+- **🔨 Netherite upgrade** - Diamond PowerTools can be upgraded at the smithing table like vanilla tools, enchantments stay.
+- **🎒 Auto pickup** - Optional: drops go straight into the inventory (`autoPickup`).
+- **🐢 Mining speed** - Optional factor for how fast PowerTools break the block you hit (`miningSpeed`).
+- **🎨 Textures** - Own textures for every PowerTool in 16x16 (`resourcepack`) and 64x64 (`resourcepack-hd`), used with `customItemModels: true`. With ItemsAdder or ResourcePackManager the plugin installs the 64x64 textures by itself.
+- **🌍 Disabled worlds** - PowerTools work like vanilla tools in the worlds listed in `disabledWorlds`.
+- **📖 Recipe book** - Players get the recipes they may craft in their recipe book.
+- **🚀 Releases** - Pushing a version tag builds the plugin and publishes a GitHub release.
+- **🐞 Fixes** - Mining stops when the tool breaks, `/powermining admin reload` no longer keeps blocks removed from the lists, and the plugin no longer keeps data of players who left.
 You'll find every changelog [here](./github/docs/Changelog.md)
 
 ## **🌎 Useful Links**

@@ -1,10 +1,27 @@
 # **📌 Changelog**
-## **🆕 Latest Updates - November 15, 2026 (v1.6)**
+## **🆕 Latest Updates - November 15, 2026 (v1.7)**
+- **⛏️ Protection plugins** - Extra blocks are now broken as if the player mined them, so Lands, WorldGuard, GriefPrevention, CoreProtect and Jobs see every block. Drops, XP and tool damage follow vanilla. The plow asks protection plugins before tilling. `legacyMining: true` brings back the old way.
+- **📋 Block lists** - Hammers and excavators now use the vanilla block tags, so new blocks work without a config change and the tool tier is checked like in vanilla. Blocks with an inventory are skipped. `customBlockList: true` keeps using the "Minable" and "Diggable" lists.
+- **🟠 Copper tools** - Added the Copper Hammer, Copper Excavator and Copper Plow, with recipes, permissions and translations.
+- **🔀 Toggle** - `/powermining toggle` turns area mining off and on for yourself. The choice survives restarts.
+- **📏 Sizes per tool** - The new `toolSizes` section sets Radius and Depth for single PowerTools, for example 5x5 for the Netherite Hammer.
+- **🌱 Plow and excavator** - Till coarse dirt, rooted dirt and paths, and make paths on dirt, podzol, mycelium, coarse and rooted dirt, as in vanilla. Farmland and paths now need air above.
+- **🌾 Sickle** - New PowerTool made from a sword. Breaking a ripe crop harvests the ripe crops around it and plants them again, paid with one seed from the drops.
+- **🔨 Netherite upgrade** - Diamond PowerTools can be upgraded at the smithing table like vanilla tools, enchantments stay.
+- **🎒 Auto pickup** - Optional: drops go straight into the inventory (`autoPickup`).
+- **🐢 Mining speed** - Optional factor for how fast PowerTools break the block you hit (`miningSpeed`).
+- **🎨 Textures** - Own textures for every PowerTool in 16x16 (`resourcepack`) and 64x64 (`resourcepack-hd`), used with `customItemModels: true`. With ItemsAdder or ResourcePackManager the plugin installs the 64x64 textures by itself.
+- **🌍 Disabled worlds** - PowerTools work like vanilla tools in the worlds listed in `disabledWorlds`.
+- **📖 Recipe book** - Players get the recipes they may craft in their recipe book.
+- **🚀 Releases** - Pushing a version tag builds the plugin and publishes a GitHub release.
+- **🐞 Fixes** - Mining stops when the tool breaks, `/powermining admin reload` no longer keeps blocks removed from the lists, and the plugin no longer keeps data of players who left.
+
+## **📌 Previous Updates**
+### 📅 **November 15, 2026 (v1.6)**
 - **🔄 Updated plugin to Minecraft 26.3** - Built against the Spigot API 26.3. Earlier versions are not supported (should work, but untested).
 - **☕ Java 25** - The plugin now needs Java 25, like Minecraft 26.x itself.
 - **📦 Dependencies** - Updated WorldGuard, bStats and the bundled libraries.
 
-## **📌 Previous Updates**
 ### 📅 **January 29, 2026 (v1.5)**
 - **🔄 Updated plugin to fully work in Minecraft 1.21.11** - Earlier versions are not supported (should work, but untested).
 - **📑 Docs** Added JavaDocs for Developers.

@@ -22,10 +22,14 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Utility class for handling PowerTools-related logic in the PowerMining
@@ -50,6 +54,137 @@ public class PowerUtils {
      * </p>
      */
     public PowerUtils() {
+    }
+
+    /**
+     * Players whose block and interact events are currently fired by the plugin
+     * itself. The plugin's own listeners skip these events, otherwise every extra
+     * block would start another area action.
+     */
+    private static final Set<UUID> SIMULATING = new HashSet<>();
+
+    /**
+     * Marks that the plugin is about to fire events for this player itself.
+     *
+     * @param player the player the events are fired for
+     */
+    public static void startSimulating(@Nonnull Player player) {
+        SIMULATING.add(player.getUniqueId());
+    }
+
+    /**
+     * Ends a section started with {@link #startSimulating(Player)}.
+     *
+     * @param player the player the events were fired for
+     */
+    public static void stopSimulating(@Nonnull Player player) {
+        SIMULATING.remove(player.getUniqueId());
+    }
+
+    /**
+     * Tells whether the current event was fired by the plugin itself.
+     *
+     * @param player the player of the event
+     * @return {@code true} while the plugin fires events for this player
+     */
+    public static boolean isSimulating(@Nonnull Player player) {
+        return SIMULATING.contains(player.getUniqueId());
+    }
+
+    /**
+     * Tells whether the player turned area mining off with
+     * {@code /powermining toggle}. The choice is stored on the player, so it
+     * survives restarts.
+     *
+     * @param player the player to check
+     * @return {@code true} if the PowerTools act like their vanilla tools
+     */
+    public static boolean isAreaMiningDisabled(@Nonnull Player player) {
+        return player.getPersistentDataContainer().has(areaMiningKey(), PersistentDataType.BYTE);
+    }
+
+    /**
+     * Switches area mining on or off for the player.
+     *
+     * @param player the player who toggles
+     * @return {@code true} if area mining is on afterwards
+     */
+    public static boolean toggleAreaMining(@Nonnull Player player) {
+        final PersistentDataContainer data = player.getPersistentDataContainer();
+        if (data.has(areaMiningKey(), PersistentDataType.BYTE)) {
+            data.remove(areaMiningKey());
+            return true;
+        }
+        data.set(areaMiningKey(), PersistentDataType.BYTE, (byte) 1);
+        return false;
+    }
+
+    /**
+     * Tells whether PowerTools act like their vanilla tools in this world
+     * ({@code disabledWorlds} in the config).
+     *
+     * @param plugin the plugin with the config
+     * @param world  the world to check
+     * @return {@code true} if the world is listed
+     */
+    public static boolean isWorldDisabled(@Nonnull PowerMining plugin, @Nonnull World world) {
+        return plugin.getConfig().getStringList("disabledWorlds").contains(world.getName());
+    }
+
+    /**
+     * Collects the reasons for a single block action instead of an area: the
+     * player sneaks, turned area mining off, or is in a disabled world.
+     *
+     * @param plugin the plugin with the config
+     * @param player the player using a PowerTool
+     * @return {@code true} if the PowerTool must act like its vanilla tool
+     */
+    public static boolean isAreaActionBlocked(@Nonnull PowerMining plugin, @Nonnull Player player) {
+        return player.isSneaking() || isAreaMiningDisabled(player) || isWorldDisabled(plugin, player.getWorld());
+    }
+
+    private static @Nonnull NamespacedKey areaMiningKey() {
+        return new NamespacedKey(PowerMining.getInstance(), "areaMiningDisabled");
+    }
+
+    /**
+     * Maps a vanilla tool to the name of the PowerTool built from it.
+     *
+     * @param toolType the vanilla pickaxe, shovel or hoe
+     * @return for example {@code DIAMOND_HAMMER}, or {@code null} for other items
+     */
+    public static @Nullable String getPowerToolName(@Nonnull Material toolType) {
+        int index = Reference.PICKAXES.indexOf(toolType);
+        if (index >= 0) {
+            return Reference.HAMMERS.get(index);
+        }
+        index = Reference.SHOVELS.indexOf(toolType);
+        if (index >= 0) {
+            return Reference.EXCAVATORS.get(index);
+        }
+        index = Reference.HOES.indexOf(toolType);
+        if (index >= 0) {
+            return Reference.PLOWS.get(index);
+        }
+        index = Reference.SWORDS.indexOf(toolType);
+        return index >= 0 ? Reference.SICKLES.get(index) : null;
+    }
+
+    /**
+     * Reads "Radius" or "Depth" for a PowerTool: the entry under
+     * {@code toolSizes.<tool>} if there is one, otherwise the global value.
+     *
+     * @param plugin   the plugin with the config
+     * @param toolType the vanilla tool the PowerTool is based on
+     * @param key      {@code Radius} or {@code Depth}
+     * @param fallback the value used when the config has neither
+     * @return the configured size, 1 meaning only the clicked block
+     */
+    public static int getToolSize(@Nonnull PowerMining plugin, @Nonnull Material toolType, @Nonnull String key,
+            int fallback) {
+        final int globalSize = plugin.getConfig().getInt(key, fallback);
+        final String toolName = getPowerToolName(toolType);
+        return toolName == null ? globalSize : plugin.getConfig().getInt("toolSizes." + toolName + "." + key, globalSize);
     }
 
     /**
@@ -447,8 +582,51 @@ public class PowerUtils {
      *         {@code false} otherwise.
      */
     public static boolean validateHammer(@Nonnull Material hammerType, @Nonnull Material blockType) {
-        return (isMineable(blockType) && Reference.PICKAXES.contains(hammerType) &&
-                (Reference.MINABLE.get(blockType) == null || Reference.MINABLE.get(blockType).contains(hammerType)));
+        if (!Reference.PICKAXES.contains(hammerType)) {
+            return false;
+        }
+        if (!Reference.CUSTOM_BLOCK_LIST) {
+            return Tag.MINEABLE_PICKAXE.isTagged(blockType) && isCorrectTier(hammerType, blockType);
+        }
+        return isMineable(blockType) &&
+                (Reference.MINABLE.get(blockType) == null || Reference.MINABLE.get(blockType).contains(hammerType));
+    }
+
+    /**
+     * Checks the tool tier the way vanilla does for drops: a block in the
+     * {@code incorrect_for_<tier>_tool} tag needs a better tool. Unbreakable
+     * blocks (negative hardness) are never allowed.
+     *
+     * @param toolType  the vanilla tool the PowerTool is based on
+     * @param blockType the block to break
+     * @return {@code true} if the tool tier is high enough for the block
+     */
+    private static boolean isCorrectTier(@Nonnull Material toolType, @Nonnull Material blockType) {
+        if (blockType.getHardness() < 0) {
+            return false;
+        }
+        final Tag<Material> incorrectBlocks = incorrectBlocksFor(toolType);
+        return incorrectBlocks == null || !incorrectBlocks.isTagged(blockType);
+    }
+
+    /**
+     * Maps a vanilla tool to the tag of blocks that are too hard for its tier.
+     *
+     * @param toolType the vanilla pickaxe, shovel or hoe
+     * @return the matching {@code incorrect_for_*_tool} tag, or {@code null} for
+     *         unknown tools
+     */
+    private static @Nullable Tag<Material> incorrectBlocksFor(@Nonnull Material toolType) {
+        return switch (toolType) {
+            case WOODEN_PICKAXE, WOODEN_SHOVEL, WOODEN_HOE -> Tag.INCORRECT_FOR_WOODEN_TOOL;
+            case STONE_PICKAXE, STONE_SHOVEL, STONE_HOE -> Tag.INCORRECT_FOR_STONE_TOOL;
+            case COPPER_PICKAXE, COPPER_SHOVEL, COPPER_HOE -> Tag.INCORRECT_FOR_COPPER_TOOL;
+            case IRON_PICKAXE, IRON_SHOVEL, IRON_HOE -> Tag.INCORRECT_FOR_IRON_TOOL;
+            case GOLDEN_PICKAXE, GOLDEN_SHOVEL, GOLDEN_HOE -> Tag.INCORRECT_FOR_GOLD_TOOL;
+            case DIAMOND_PICKAXE, DIAMOND_SHOVEL, DIAMOND_HOE -> Tag.INCORRECT_FOR_DIAMOND_TOOL;
+            case NETHERITE_PICKAXE, NETHERITE_SHOVEL, NETHERITE_HOE -> Tag.INCORRECT_FOR_NETHERITE_TOOL;
+            default -> null;
+        };
     }
 
     /**
@@ -468,7 +646,13 @@ public class PowerUtils {
      *         {@code false} otherwise.
      */
     public static boolean validateExcavator(@Nonnull Material excavatorType, @Nonnull Material blockType) {
-        return (isDigable(blockType) && Reference.SPADES.contains(excavatorType));
+        if (!Reference.SPADES.contains(excavatorType)) {
+            return false;
+        }
+        if (!Reference.CUSTOM_BLOCK_LIST) {
+            return Tag.MINEABLE_SHOVEL.isTagged(blockType) && isCorrectTier(excavatorType, blockType);
+        }
+        return isDigable(blockType);
     }
 
     /**

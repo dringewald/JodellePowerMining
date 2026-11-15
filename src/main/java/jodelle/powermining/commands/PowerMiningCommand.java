@@ -17,6 +17,7 @@ import jodelle.powermining.PowerMining;
 import jodelle.powermining.lib.DebuggingMessages;
 import jodelle.powermining.listeners.BlockBreakListener;
 import jodelle.powermining.utils.LangFile;
+import jodelle.powermining.utils.PowerUtils;
 
 /**
  * Handles the `/powermining` command for the PowerMining plugin.
@@ -325,6 +326,25 @@ public class PowerMiningCommand implements CommandExecutor {
                      "&cYou can't use that command from console.", true));
                return true;
             }
+         }
+         // Toggle Command
+         else if (args[0].equalsIgnoreCase("toggle") || args[0].equalsIgnoreCase("t")) {
+            if (!(sender instanceof Player togglingPlayer)) {
+               sender.sendMessage(plugin.getLangFile().getMessage("console-use-not-allowed",
+                     "&cYou can't use that command from console.", true));
+               return true;
+            }
+            if (!sender.hasPermission("powermining.toggle")) {
+               sender.sendMessage(plugin.getLangFile().getMessage("no-command-permission",
+                     "&cYou do not have permission to use this command!", true));
+               return true;
+            }
+            final boolean enabled = PowerUtils.toggleAreaMining(togglingPlayer);
+            final String status = enabled ? plugin.getLangFile().getMessage("enabled", "enabled", false)
+                  : plugin.getLangFile().getMessage("disabled", "disabled", false);
+            sender.sendMessage(plugin.getLangFile().getMessage("area-mining-toggled",
+                  "&2Area mining is now %status%.", true).replace("%status%", status));
+            return true;
          }
          // Help Command
          else if (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("h")) {
